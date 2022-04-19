@@ -23,7 +23,10 @@ def main():
 def _run(name, pull, volume):
     """Run environment"""
 
-    pass
+    if pull:
+        docker.pull(name)
+    
+    docker.run(name)
 
 @main.command('pull')
 @click.help_option('-h', '--help')
@@ -31,21 +34,21 @@ def _run(name, pull, volume):
 def _pull(name):
     """Pull image and exit"""
 
-    pass
+    docker.pull(name)
     
 @main.command('list')
 @click.help_option('-h', '--help')
 def _list():
     """List local images"""
 
-    pass
+    docker.list_images()
 
 @main.command('refresh')
 @click.help_option('-h', '--help')
 def _refresh():
     """Pull latest version of local images"""
 
-    pass
+    docker.refresh()
 
 @main.command('config')
 @click.help_option('-h', '--help')
@@ -60,7 +63,7 @@ def _config():
 def _build():
     """Build images from source"""
 
-    pass
+    docker.build()
 
 if __name__ == '__main__':
     main()
