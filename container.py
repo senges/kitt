@@ -3,6 +3,11 @@ import dockerpty
 
 from logger import *
 
+# Docker image abstraction
+class ImageWrapper:
+    def __init__(slef):
+        pass
+
 # Docker wrapper
 class DockerWrapper:
     def __init__(self):
@@ -45,6 +50,10 @@ class DockerWrapper:
        
         success(f'Image { name } pull done')
 
+    # Update all local images
+    def refresh(self):
+        pass
+
     # Check if local image is present
     def stat(self, name: str):
         try:
@@ -62,10 +71,32 @@ class DockerWrapper:
     def env(self):
         pass
 
-    def init():
+    def init(self):
         pass
 
-    def build():
-        pass
+    # Build kitt image
+    def build(self):
+        try:
+            with waiter(f'Building image'):
+                self.client.images.build(
+                    path = 'static',
+                    # nocache = True,
+                    tag = 'kittd',
+                    labels = { 'kitt' : '' }
+                )
+        
+        except docker.errors.APIError as e:
+            print(e)
+            panic('Could not build image')
+
+    def list_images(self):
+        try:
+            images = self.client.images.list( filters = {'label' : 'kitt'} )
+
+        except docker.errors.APIError :
+            panic('Could not list local images')
+
+        for image in images:
+            info(' '.join(image.tags))
 
 client = DockerWrapper()
