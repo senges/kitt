@@ -10,6 +10,10 @@ def success(msg: str):
 
 # Display cli info
 def info(msg: str):
+    console.print('[sky_blue3] ' + msg)
+
+# Display cli info
+def warning(msg: str):
     console.print('[yellow]~ ' + msg)
 
 # Provide pending status object
