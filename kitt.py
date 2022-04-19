@@ -9,6 +9,7 @@
 import click
 
 from container import client as docker
+from logger import info
 
 @click.group()
 @click.help_option('-h', '--help')
@@ -41,7 +42,8 @@ def _pull(name):
 def _list():
     """List local images"""
 
-    docker.list_images()
+    for image in docker.images():
+        info(' '.join(image.tags))
 
 @main.command('refresh')
 @click.help_option('-h', '--help')
