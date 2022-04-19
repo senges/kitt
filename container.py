@@ -89,14 +89,13 @@ class DockerWrapper:
             print(e)
             panic('Could not build image')
 
-    def list_images(self):
+    def images(self):
         try:
             images = self.client.images.list( filters = {'label' : 'kitt'} )
 
         except docker.errors.APIError :
             panic('Could not list local images')
 
-        for image in images:
-            info(' '.join(image.tags))
+        return images
 
 client = DockerWrapper()
