@@ -62,10 +62,12 @@ def _config():
 
 @main.command('build')
 @click.help_option('-h', '--help')
-def _build():
+@click.option('-f', '--file', is_flag = False, multiple = False, help = 'Input kitt file')
+@click.option('-c', '--catalog', is_flag = False, multiple = True, help = 'Input Catalog file')
+def _build(file, catalog):
     """Build images from source"""
 
-    docker.build()
+    docker.build(file, catalog)
 
 if __name__ == '__main__':
     main()
