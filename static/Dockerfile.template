@@ -6,6 +6,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Default starting workdir is root home
 WORKDIR "/root"
 
+# Default entrypoint is bash (can override)
+ENTRYPOINT [ "/bin/bash" ]
+
 # Setup catalog installer
 ENV PATH="${PATH}:/opt/bin"
 
