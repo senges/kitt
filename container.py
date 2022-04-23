@@ -1,43 +1,13 @@
 import io
 import toml
-import json
 import docker
 import dockerpty
 
-from types import SimpleNamespace
 from logger import *
-
-# Config file wrapper object
-class Config(SimpleNamespace):
-
-    # > Will handle default value in the future
-    # > in order to accept incomplete config file from client
-    def __getattribute__(self, value):
-        try:
-            return super().__getattribute__(value)
-
-        except AttributeError:
-            return None
-
-    # > Will convert toml into json in order to abuse `object_hook' handler
-    # > toml -> json -> Config(SimpleNamespace)
-    @staticmethod
-    def load(file: str):
-        try:
-            toml_config     = toml.load(file)
-            json_config     = json.dumps(toml_config)
-            config_object   = json.loads(
-                json_config,
-                object_hook = lambda x: Config(**x)
-            )
-        except:
-            panic('Could not load config file')
-
-        return config_object
 
 # Docker image abstraction
 class ImageBuilder:
-    def __init__(self, config: Config):
+    def __init__(self, config):
         try:
             with open('static/Dockerfile.template', 'r') as df:
                 self.template = df.read()
@@ -47,21 +17,7 @@ class ImageBuilder:
         self.config = config
 
     def compose(self):
-        tools      = self.config.workspace.tools
-        zsh_theme  = self.config.zsh.theme
-        zsh_extras = []
-
-        for plugin in self.config.zsh.plugins:
-            zsh_extras.append( '-p "%s"' % plugin )
-
-        for extra in self.config.zsh.extras:
-            zsh_extras.append( '-a "%s"' % extra )
-
-        return self.replace([
-            ('ZSH-EXTRA', zsh_extras),
-            ('ZSH-THEME', zsh_theme),
-            ('TOOLS', tools)
-        ])
+        raise NotImplementedError('Will switch to plugins next commit')
 
     def replace(self, tup):
         template = self.template
@@ -135,7 +91,7 @@ class DockerWrapper:
     # Build kitt image
     def build(self, config_file: str):
 
-        config      = Config.load(config_file)
+        config      = toml.load(config_file)
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
 
@@ -147,7 +103,7 @@ class DockerWrapper:
                     tag     = 'kittd',
                     labels  = {
                         'kitt' : 'v0.1',
-                        'hostname' : config.workspace.hostname
+                        'hostname' : config['workspace']['hostname']
                     }
                 )
         
