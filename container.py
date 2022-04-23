@@ -15,12 +15,13 @@ class Config:
 
             if config_file:
                 custom = toml.load(config_file)
-                default.update(user)
+                default.update(custom)
 
         except FileNotFoundError as e:
             panic('could not open file ' + e.filename)
 
-        except:
+        except Exception as e:
+            debug(e)
             panic('Error loading config files')
 
         # Handle incomplete user config file
@@ -32,7 +33,9 @@ class ImageBuilder:
         try:
             with open('static/Dockerfile.template', 'r') as df:
                 self.template = df.read()
-        except:
+                
+        except Exception as e:
+            debug(e)
             panic('could not open Dockerfile.template')
 
         self.config = config
@@ -69,7 +72,8 @@ class DockerWrapper:
         except docker.errors.APIError:
             panic('Could not connect to docker socket')
 
-        except docker.errors.DockerException:
+        except docker.errors.DockerException as e:
+            debug(e)
             panic('Problem trying to run docker')
 
     # Start container
@@ -99,6 +103,9 @@ class DockerWrapper:
         
         except docker.errors.APIError:
             panic(f'Could not pull image { name }')
+        
+        except Exception as e:
+            debug(e)
        
         success(f'Image { name } pull done')
 
@@ -113,6 +120,9 @@ class DockerWrapper:
 
         except docker.errors.ImageNotFound:
             return None
+        
+        except Exception as e:
+            debug(e)
 
         return img
 
@@ -121,15 +131,12 @@ class DockerWrapper:
         pass
 
     # Build kitt image
-    # def build(self, config_file: str):
     def build(self, config_file, catalog):
 
         if catalog:
             warning('Catalog custom input files not yet implemented, wille ignore.')
 
         config      = Config.load(config_file)
-        print(config)
-        exit(0)
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
 
@@ -146,15 +153,22 @@ class DockerWrapper:
                 )
         
         except docker.errors.APIError as e:
-            print(e)
+            debug(e)
             panic('Could not build image')
+
+        except Exception as e:
+            debug(e)
 
     def images(self):
         try:
             images = self.client.images.list( filters = {'label' : 'kitt'} )
 
-        except docker.errors.APIError :
+        except docker.errors.APIError as e:
+            debug(e)
             panic('Could not list local images')
+
+        except Exception as e:
+            debug(e)
 
         return images
 
