@@ -132,12 +132,6 @@ class DockerWrapper:
     def volumes(self):
         pass
 
-    def env(self):
-        pass
-
-    def init(self):
-        pass
-
     # Build kitt image
     def build(self, config_file: str):
 
