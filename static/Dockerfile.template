@@ -1,7 +1,10 @@
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 # Set command prefix as non interactive
 ARG DEBIAN_FRONTEND=noninteractive
+
+# Default starting workdir is root home
+WORKDIR "/root"
 
 # Setup catalog installer
 ENV PATH="${PATH}:/opt/bin"
@@ -16,20 +19,6 @@ RUN git clone --depth 1 https://github.com/senges/catalog.git /opt/catalog \
     && ln -s /opt/catalog/catalog.py /opt/bin/catalog
 
 # Install common packages
-RUN catalog -v utils
+RUN catalog -v utils __tools__
 
-# Setup ZSH
-RUN catalog -v zsh-in-docker
-RUN zsh-in-docker {{ZSH-EXTRA}} \
-    -t '{{ZSH-THEME}}' \
-    -a 'alias tools="catalog --list"' \
-    -a 'zstyle ":completion:*:commands" rehash 1' \
-    -a 'export SHELL=$(which zsh)' \
-    -a 'export EDITOR=$(which vim)'
-
-# Install custom user tools
-RUN catalog -v {{TOOLS}}
-
-WORKDIR "/root"
-
-ENTRYPOINT [ "/bin/zsh" ]
+__plugins__
