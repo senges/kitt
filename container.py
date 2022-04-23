@@ -35,9 +35,41 @@ class Config(SimpleNamespace):
         return config_object
 
 # Docker image abstraction
-class ImageWrapper:
-    def __init__(slef):
-        pass
+class ImageBuilder:
+    def __init__(self, config: Config):
+        try:
+            with open('static/Dockerfile.template', 'r') as df:
+                self.template = df.read()
+        except:
+            panic('could not open Dockerfile.template')
+
+        self.config = config
+
+    def compose(self):
+        tools      = self.config.image.tools
+        zsh_theme  = self.config.zsh.theme
+        zsh_extras = []
+
+        for plugin in self.config.zsh.plugins:
+            zsh_extras.append( '-p "%s"' % plugin )
+
+        for extra in self.config.zsh.extras:
+            zsh_extras.append( '-a "%s"' % extra )
+
+        return self.replace([
+            ('ZSH-EXTRA', zsh_extras),
+            ('ZSH-THEME', zsh_theme),
+            ('TOOLS', tools)
+        ])
+
+    def replace(self, tup):
+        template = self.template
+        for k, v in tup:
+            if isinstance(v, list):
+                v = ' '.join(v)
+            template = template.replace('{{%s}}' % k, v)
+
+        return template
 
 # Docker wrapper
 class DockerWrapper:
