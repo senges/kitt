@@ -12,10 +12,9 @@ class Config:
     def load(config_file: str = None):
         try:
             default = toml.load('static/default.toml')
-
             if config_file:
                 custom = toml.load(config_file)
-                default.update(custom)
+                default = Config.update(custom, default)
 
         except FileNotFoundError as e:
             panic('could not open file ' + e.filename)
@@ -27,13 +26,25 @@ class Config:
         # Handle incomplete user config file
         return default
 
+    @staticmethod
+    def update(src: dict, dest: dict):
+        for k, v in src.items():
+            if k in dest and isinstance(v, dict) and isinstance(dest[k], dict):
+                dest[k] = Config.update(src[k], dest[k])
+            elif k in dest and v in ['', [], ['']]:
+                continue
+            else:
+                dest[k] = src[k]
+
+        return dest
+
 # Docker image abstraction
 class ImageBuilder:
     def __init__(self, config):
         try:
             with open('static/Dockerfile.template', 'r') as df:
                 self.template = df.read()
-                
+
         except Exception as e:
             debug(e)
             panic('could not open Dockerfile.template')
@@ -59,7 +70,11 @@ class ImageBuilder:
         # Replace key by line block in template
         for key, value in composer.items():
             lineset = ' '.join(value)
-            template = template.replace('__%s__' % key, lineset)
+            dockerfile = dockerfile.replace('__%s__' % key, lineset)
+
+        # To be removed, debug purpose
+        # with open('Dockerfile.gen', 'w+') as f:
+        #     f.write(dockerfile)
 
         return dockerfile
 
