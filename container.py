@@ -4,6 +4,7 @@ import docker
 import dockerpty
 
 import plugins
+
 from logger import *
 
 # Config utils
@@ -29,7 +30,6 @@ class Config:
 
     # Deep update dict config `src' with config `dest'
     # Make sure it wont overwrite if empty str or list.
-
     @staticmethod
     def update(src: dict, dest: dict):
         for k, v in src.items():
@@ -178,6 +178,7 @@ class DockerWrapper:
         except Exception as e:
             debug(e)
 
+    # List kitt labeled images
     def images(self):
         try:
             images = self.client.images.list( filters = {'label' : 'kitt'} )
