@@ -7,13 +7,15 @@
 # =============================================================================
 
 import click
+import logger
 
 from container import client as docker
-from logger import info
 
 @click.group()
 @click.help_option('-h', '--help')
-def main():
+@click.option('-d', '--debug', is_flag = True, help = 'Debug mode')
+def main(debug):
+    logger.config(debug)
     pass
 
 @main.command('run')
@@ -43,7 +45,7 @@ def _list():
     """List local images"""
 
     for image in docker.images():
-        info(' '.join(image.tags))
+        logger.info(' '.join(image.tags))
 
 @main.command('refresh')
 @click.help_option('-h', '--help')
