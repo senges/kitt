@@ -6,6 +6,25 @@ import dockerpty
 import plugins
 from logger import *
 
+class Config:
+
+    @staticmethod
+    def load(config_file: str = None):
+        try:
+            default = toml.load('static/default.toml')
+
+            if config_file:
+                custom = toml.load(config_file)
+                default.update(user)
+
+        except FileNotFoundError as e:
+            panic('could not open file ' + e.filename)
+
+        except:
+            panic('Error loading config files')
+
+        # Handle incomplete user config file
+        return default
 
 # Docker image abstraction
 class ImageBuilder:
@@ -103,9 +122,14 @@ class DockerWrapper:
 
     # Build kitt image
     # def build(self, config_file: str):
-    def build(self, config_file: str = "test.conf.toml"):
+    def build(self, config_file, catalog):
 
-        config      = toml.load(config_file)
+        if catalog:
+            warning('Catalog custom input files not yet implemented, wille ignore.')
+
+        config      = Config.load(config_file)
+        print(config)
+        exit(0)
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
 

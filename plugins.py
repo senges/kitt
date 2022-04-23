@@ -1,6 +1,10 @@
 from logger import panic
 from abc import ABC as AbstractClass, abstractmethod
 
+# Every plugin must inherit KittPlugin class and implement
+# custom _generate() method which returns and array of
+# Dockerfile commands.
+
 class KittPlugin(AbstractClass):
     def __init__(self, config):
         self.config = config
