@@ -1,7 +1,38 @@
+import toml
+import json
 import docker
 import dockerpty
 
+from types import SimpleNamespace
 from logger import *
+
+# Config file wrapper object
+class Config(SimpleNamespace):
+
+    # > Will handle default value in the future
+    # > in order to accept incomplete config file from client
+    def __getattribute__(self, value):
+        try:
+            return super().__getattribute__(value)
+
+        except AttributeError:
+            return None
+
+    # > Will convert toml into json in order to abuse `object_hook' handler
+    # > toml -> json -> Config(SimpleNamespace)
+    @staticmethod
+    def load(file: str):
+        try:
+            toml_config     = toml.load(file)
+            json_config     = json.dumps(toml_config)
+            config_object   = json.loads(
+                json_config,
+                object_hook = lambda x: Config(**x)
+            )
+        except:
+            panic('Could not load config file')
+
+        return config_object
 
 # Docker image abstraction
 class ImageWrapper:
