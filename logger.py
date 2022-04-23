@@ -1,4 +1,8 @@
-from rich.console import Console
+import traceback
+
+from typing import Union
+
+from rich.console import Console, Capture
 from rich.table import Table
 from rich import box
 
@@ -21,9 +25,11 @@ def warning(msg: str):
 def waiter(msg: str):
     return console.status('[bold grey]' + msg)
 
-def debug(msg: str):
+def debug(msg: Union[str, Exception]):
     if console.debug:
-        console.log('[grey62]' + msg)
+        if not isinstance(msg, str):
+            console.log('[grey62]' + str(traceback.format_exc()))
+        console.log('[grey62]' + str(msg))
 
 # Config logger
 def config(debug: bool = False):
