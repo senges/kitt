@@ -6,6 +6,7 @@ import dockerpty
 import plugins
 from logger import *
 
+# Config utils
 class Config:
 
     @staticmethod
@@ -25,6 +26,9 @@ class Config:
 
         # Handle incomplete user config file
         return default
+
+    # Deep update dict config `src' with config `dest'
+    # Make sure it wont overwrite if empty str or list.
 
     @staticmethod
     def update(src: dict, dest: dict):
