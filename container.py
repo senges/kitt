@@ -47,7 +47,7 @@ class ImageBuilder:
         self.config = config
 
     def compose(self):
-        tools      = self.config.image.tools
+        tools      = self.config.workspace.tools
         zsh_theme  = self.config.zsh.theme
         zsh_extras = []
 
@@ -147,7 +147,7 @@ class DockerWrapper:
                     tag     = 'kittd',
                     labels  = {
                         'kitt' : 'v0.1',
-                        'hostname' : config.image.hostname
+                        'hostname' : config.workspace.hostname
                     }
                 )
         
