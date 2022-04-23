@@ -19,6 +19,8 @@ class ImageBuilder:
         self.config = config
 
     def compose(self):
+        dockerfile = self.template
+
         # store token => value to replace in template dockerfile
         composer = {}
 
@@ -26,33 +28,18 @@ class ImageBuilder:
         composer['tools'] = self.config['workspace']['tools']
 
         # Plugins to append in Dockerfile
-        composer['plugins'] = {}
+        composer['plugins'] = []
 
         for name, config in self.config['plugins'].items():
             extra = plugins.compose(name, config)
-            composer['plugins'][name] = extra
+            composer['plugins'].append(extra)
 
-        dockerfile = self._compose(composer)
-        with open('Dockerfile.gen', 'w+') as df:
-            df.write(dockerfile)
-
-        return dockerfile
-
-    def _compose(self, composer):
-        template = self.template
-
+        # Replace key by line block in template
         for key, value in composer.items():
-            if isinstance(value, dict):
-                lineset = ''
-                for plugin, definition in value.items():
-                    lineset += '# plugin: %s\n' % plugin
-                    lineset += '\n'.join(definition) + '\n\n'
-            else:
-                lineset = ' '.join(value)
-
+            lineset = ' '.join(value)
             template = template.replace('__%s__' % key, lineset)
 
-        return template
+        return dockerfile
 
 # Docker wrapper
 class DockerWrapper:

@@ -18,7 +18,7 @@ RUN mkdir -p /opt/bin \
 RUN git clone --depth 1 https://github.com/senges/catalog.git /opt/catalog \
     && ln -s /opt/catalog/catalog.py /opt/bin/catalog
 
-# Install common packages
+# Install Catalog packages
 RUN catalog -v utils __tools__
 
 __plugins__
