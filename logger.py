@@ -25,6 +25,7 @@ def warning(msg: str):
 def waiter(msg: str):
     return console.status('[bold grey]' + msg)
 
+# Extended log for debug mode
 def debug(msg: Union[str, Exception]):
     if console.debug:
         if not isinstance(msg, str):

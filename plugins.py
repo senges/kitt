@@ -18,7 +18,6 @@ class KittPlugin(AbstractClass):
 
     # Should be implemented for each inherited Class of KittPlugin
     # Must return a list of lines in dockerfile format.
-
     @abstractmethod
     def _generate(self) -> [str]:
         pass
