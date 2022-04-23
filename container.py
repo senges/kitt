@@ -138,14 +138,22 @@ class DockerWrapper:
         pass
 
     # Build kitt image
-    def build(self):
+    def build(self, config_file: str):
+
+        config      = Config.load(config_file)
+        dockerfile  = ImageBuilder(config).compose()
+        fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
+
         try:
             with waiter(f'Building image'):
                 self.client.images.build(
-                    path = 'static',
-                    # nocache = True,
-                    tag = 'kittd',
-                    labels = { 'kitt' : '' }
+                    fileobj = fileobj,
+                    nocache = True,
+                    tag     = 'kittd',
+                    labels  = {
+                        'kitt' : 'v0.1',
+                        'hostname' : config.image.hostname
+                    }
                 )
         
         except docker.errors.APIError as e:
