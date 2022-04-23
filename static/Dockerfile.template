@@ -1,0 +1,35 @@
+FROM ubuntu:latest
+
+# Set command prefix as non interactive
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Setup catalog installer
+ENV PATH="${PATH}:/opt/bin"
+
+RUN mkdir -p /opt/bin \
+    && apt update \
+    && apt install -y wget zip git python3 python3-pip \
+    && ln -fs "$(which python3)" /bin/python \
+    && ln -fs "$(which pip3)" /bin/pip
+
+RUN git clone --depth 1 https://github.com/senges/catalog.git /opt/catalog \
+    && ln -s /opt/catalog/catalog.py /opt/bin/catalog
+
+# Install common packages
+RUN catalog -v utils
+
+# Setup ZSH
+RUN catalog -v zsh-in-docker
+RUN zsh-in-docker {{ZSH-EXTRA}} \
+    -t '{{ZSH-THEME}}' \
+    -a 'alias tools="catalog --list"' \
+    -a 'zstyle ":completion:*:commands" rehash 1' \
+    -a 'export SHELL=$(which zsh)' \
+    -a 'export EDITOR=$(which vim)'
+
+# Install custom user tools
+RUN catalog -v {{TOOLS}}
+
+WORKDIR "/root"
+
+ENTRYPOINT [ "/bin/zsh" ]
