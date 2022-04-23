@@ -3,7 +3,9 @@ import toml
 import docker
 import dockerpty
 
+import plugins
 from logger import *
+
 
 # Docker image abstraction
 class ImageBuilder:
@@ -17,14 +19,38 @@ class ImageBuilder:
         self.config = config
 
     def compose(self):
-        raise NotImplementedError('Will switch to plugins next commit')
+        # store token => value to replace in template dockerfile
+        composer = {}
 
-    def replace(self, tup):
+        # Tools to install with Catalog
+        composer['tools'] = self.config['workspace']['tools']
+
+        # Plugins to append in Dockerfile
+        composer['plugins'] = {}
+
+        for name, config in self.config['plugins'].items():
+            extra = plugins.compose(name, config)
+            composer['plugins'][name] = extra
+
+        dockerfile = self._compose(composer)
+        with open('Dockerfile.gen', 'w+') as df:
+            df.write(dockerfile)
+
+        return dockerfile
+
+    def _compose(self, composer):
         template = self.template
-        for k, v in tup:
-            if isinstance(v, list):
-                v = ' '.join(v)
-            template = template.replace('{{%s}}' % k, v)
+
+        for key, value in composer.items():
+            if isinstance(value, dict):
+                lineset = ''
+                for plugin, definition in value.items():
+                    lineset += '# plugin: %s\n' % plugin
+                    lineset += '\n'.join(definition) + '\n\n'
+            else:
+                lineset = ' '.join(value)
+
+            template = template.replace('__%s__' % key, lineset)
 
         return template
 
@@ -89,7 +115,8 @@ class DockerWrapper:
         pass
 
     # Build kitt image
-    def build(self, config_file: str):
+    # def build(self, config_file: str):
+    def build(self, config_file: str = "test.conf.toml"):
 
         config      = toml.load(config_file)
         dockerfile  = ImageBuilder(config).compose()
