@@ -32,11 +32,15 @@ class ZshPlugin(KittPlugin):
         
         # Few default additional config
         self.config['extras'] += [
-            "alias tools='catalog --list'",
             "zstyle ':completion:*:commands' rehash 1",
             "export SHELL=/usr/bin/zsh",
             "export EDITOR=$(which vi)"
         ]
+
+        self.config['alias'].append({
+            'name': 'tools',
+            'cmd': 'catalog --list'
+        })
 
         for plugin in self.config['plugins']:
             cmd += ' -p "%s"' % plugin
@@ -44,13 +48,36 @@ class ZshPlugin(KittPlugin):
         for extra in self.config['extras']:
             cmd += ' -a "%s"' % extra
 
+        for alias in self.config['alias']:
+            cmd += ' -a \'alias %s="%s"\'' % (alias['name'], alias['cmd'])
+
         cmdset.append(cmd)
         cmdset.append('ENTRYPOINT [ "/bin/zsh" ]')
 
         return cmdset
 
+class TmuxPlugin(KittPlugin):
+    def _generate(self) -> str:
+        cmd = 'RUN catalog -v tmux'
+
+        for extra in self.config['extras']:
+            cmd += ' && echo "%s" >> /root/.tmux.conf' % extra
+
+        return [ cmd ]
+
+class ScreenPlugin(KittPlugin):
+    def _generate(self) -> str:
+        cmd = 'RUN catalog -v screen'
+
+        for extra in self.config['extras']:
+            cmd += ' && echo "%s" >> /root/.screenrc' % extra
+
+        return [ cmd ]
+
 plugins = {
-    'zsh' : ZshPlugin,
+    'zsh'    : ZshPlugin,
+    'tmux'   : TmuxPlugin,
+    'screen' : ScreenPlugin
 }
 
 def compose(name: str, conf: dict) -> str:
