@@ -1,4 +1,5 @@
-FROM ubuntu:22.04
+# FROM ubuntu:20.04
+FROM senges/catalog:latest
 
 # Set command prefix as non interactive
 ARG DEBIAN_FRONTEND=noninteractive
@@ -9,17 +10,8 @@ WORKDIR "/root"
 # Default entrypoint is bash (can override)
 ENTRYPOINT [ "/bin/bash" ]
 
-# Setup catalog installer
-ENV PATH="${PATH}:/opt/bin"
-
-RUN mkdir -p /opt/bin \
-    && apt update \
-    && apt install -y wget zip git python3 python3-pip \
-    && ln -fs "$(which python3)" /bin/python \
-    && ln -fs "$(which pip3)" /bin/pip
-
-RUN git clone --depth 1 https://github.com/senges/catalog.git /opt/catalog \
-    && ln -s /opt/catalog/catalog.py /opt/bin/catalog
+# Environment variables
+__envs__
 
 # Install Catalog packages
 RUN catalog -v utils __tools__
