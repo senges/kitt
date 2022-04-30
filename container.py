@@ -1,5 +1,7 @@
+import os
 import io
 import toml
+import json
 import docker
 import dockerpty
 
@@ -16,7 +18,10 @@ class Config:
             default = toml.load('static/default.toml')
             if config_file:
                 custom = toml.load(config_file)
-                default = Config.update(custom, default)
+
+        except toml.TomlDecodeError:
+            with open(config_file, 'r') as f:
+                custom = json.load(f)
 
         except FileNotFoundError as e:
             panic('could not open file ' + e.filename)
@@ -25,7 +30,10 @@ class Config:
             debug(e)
             panic('Error loading config files')
 
-        # Handle incomplete user config file
+        finally:
+            # Handle incomplete user config file
+            default = Config.update(custom, default)
+
         return default
 
     # Deep update dict config `src' with config `dest'
@@ -67,6 +75,13 @@ class ImageBuilder:
         # Plugins to append in Dockerfile
         composer['plugins'] = []
 
+        # Evironment variables
+        # (Better at runtime ?)
+        composer['envs'] = []
+        for env in self.config['workspace']['envs']:
+            line = '\nENV %s="%s"' % (env['name'], env['value'])
+            composer['envs'].append(line)
+
         for name, config in self.config['plugins'].items():
             extra = plugins.compose(name, config)
             composer['plugins'].append(extra)
@@ -75,10 +90,6 @@ class ImageBuilder:
         for key, value in composer.items():
             lineset = ' '.join(value)
             dockerfile = dockerfile.replace('__%s__' % key, lineset)
-
-        # To be removed, debug purpose
-        # with open('Dockerfile.gen', 'w+') as f:
-        #     f.write(dockerfile)
 
         return dockerfile
 
@@ -96,22 +107,65 @@ class DockerWrapper:
             panic('Problem trying to run docker')
 
     # Start container
-    def run(self, name: str, volumes: dict = {}, env: list = []):
+    def run(self, name: str):
         if not self.stat(name):
             panic(f'Image { name } not found locally. Use `pull` command or add `--pull` flag.')
 
+        img = self.client.images.get(name)
+        labels = img.labels
+        hostname = labels.get('hostname', 'kitt')
+        volumes = labels.get('bind_volumes', '{}')
+        volumes = json.loads(volumes)
+
         container = self.client.containers.create(
+            # user         = 1000,
             image        = name,
             auto_remove  = True,
-            hostname     = 'kitt',
+            hostname     = hostname,
             stdin_open   = True,
             tty          = True,
             network_mode = 'host',
             volumes      = volumes,
-            environment  = env,
+            # environment  = env,
         )
 
         dockerpty.start(self.client.api, container.id)
+
+    # Build kitt image
+    def build(self, config_file, catalog):
+        if catalog:
+            warning('Catalog custom input files not yet implemented, wille ignore.')
+
+        config      = Config.load(config_file)
+        # print(json.dumps(config, indent=4))
+        # exit(0)
+        dockerfile  = ImageBuilder(config).compose()
+        fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
+        volumes     = self.volumes(config)
+        # debug(dockerfile)
+        # exit(0)
+
+        try:
+            with waiter(f'Building image'):
+                self.client.images.build(
+                    fileobj = fileobj,
+                    pull = True,
+                    # nocache = True,
+                    # tag     = 'kittd',
+                    tag     = 'xx',
+                    labels  = {
+                        'kitt' : 'v0.1',
+                        'hostname' : config['workspace']['hostname'],
+                        'bind_volumes' : json.dumps(volumes)
+                    }
+                )
+        
+        except docker.errors.APIError as e:
+            debug(e)
+            panic('Could not build image')
+
+        except Exception as e:
+            debug(e)
 
     # Pull docker image
     def pull(self, name: str):
@@ -145,39 +199,6 @@ class DockerWrapper:
 
         return img
 
-    # Docker volume list generation
-    def volumes(self):
-        pass
-
-    # Build kitt image
-    def build(self, config_file, catalog):
-
-        if catalog:
-            warning('Catalog custom input files not yet implemented, wille ignore.')
-
-        config      = Config.load(config_file)
-        dockerfile  = ImageBuilder(config).compose()
-        fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
-
-        try:
-            with waiter(f'Building image'):
-                self.client.images.build(
-                    fileobj = fileobj,
-                    nocache = True,
-                    tag     = 'kittd',
-                    labels  = {
-                        'kitt' : 'v0.1',
-                        'hostname' : config['workspace']['hostname']
-                    }
-                )
-        
-        except docker.errors.APIError as e:
-            debug(e)
-            panic('Could not build image')
-
-        except Exception as e:
-            debug(e)
-
     # List kitt labeled images
     def images(self):
         try:
@@ -191,5 +212,33 @@ class DockerWrapper:
             debug(e)
 
         return images
+
+    # Docker volume list generation
+    def volumes(self, config: dict):
+        volset = {}
+
+        # Share docker socket
+        if config['options']['docker_in_docker']:
+            sock = '/var/run/docker.sock'
+            volset[sock] = { 'bind' : sock, 'mode' : 'rw' }
+
+        # Share ssh folder (read-only)
+        if config['options']['bind_ssh_folder']:
+            ssh = '%s/.ssh' % os.environ.get('HOME')
+            volset[ssh] = { 'bind' : '/root/.ssh', 'mode' : 'ro' }
+
+        # Add custom volumes
+        for vol in config['workspace']['volumes']:
+            host = vol.get('host')
+            bind = vol.get('bind')
+            mode = vol.get('mode', 'rw')
+
+            if not host or not bind:
+                warning('Bad volume format : "%s"' % vol)
+                continue
+
+            volset[host] = { 'bind' : bind, 'mode' : mode }
+
+        return volset
 
 client = DockerWrapper()
