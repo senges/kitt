@@ -1,30 +1,56 @@
 # This is a config file sample
 
 [options]
-bind_ssh_folder = true
-network_host_mode = true
+bind_ssh_folder = false     # Bind $HOME/.ssh read-only
+docker_in_docker = false    # Share docker socket
+forward_x11 = false         # Configure x11 forward
 
 [workspace]
 tools = []          # Catalog tools
 hostname = "kitt"   # Container hostname
-volumes = []        # Container bind volumes
-envs = []           # Container exported ENV
+
+# [[workspace.envs]]  # Container exported ENV (multiple)
+# name = ""
+# value = ""
+
+# [[workspace.volumes]]   # Container bind volumes (multiple)
+# host = ""   # Local directory
+# bind = ""   # Bin inside container
+# mode = ""   # Mode (default is 'rw')
 
 # Plugins are optional additional
 # features for container customisations.
 # See plugins.py for further informations
 [plugins]
 
+    # ===== ZSH =====#
+
     [plugins.zsh]
     theme = "afowler"
-    plugins = []
-    extras = []
+    plugins = []    # Plugins name or link
+    extras = []     # Extra line for .zshrc
 
-    # [plugins.xforward]
-    # x_server = "xorg"
+    # # Add zsh alias (multiple)
+    # [[plugins.zsh.alias]]
+    # name = ''
+    # cmd = ''
+
+    # ===== TMUX =====#
+
+    # [plugins.tmux]
+    # config = []
+
+    # ===== SCREEN =====#
+
+    # [plugins.screen]
+    # config = []
+
+    # ===== FILES =====#
 
     # [plugins.files]
     # files = []
+
+    # ===== SECRETS =====#
 
     # [plugins.secrets]
     # files = []
