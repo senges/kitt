@@ -8,6 +8,8 @@ forward_x11 = false         # Configure x11 forward
 [workspace]
 tools = []          # Catalog tools
 hostname = "kitt"   # Container hostname
+envs = []           # Remove if any (see bellow)
+volumes = []        # Remove if any (see bellow)
 
 # [[workspace.envs]]  # Container exported ENV (multiple)
 # name = ""
@@ -45,12 +47,12 @@ hostname = "kitt"   # Container hostname
     # [plugins.screen]
     # config = []
 
-    # ===== FILES =====#
+    # ===== FILES =====# // Not yet implemented
 
     # [plugins.files]
     # files = []
 
-    # ===== SECRETS =====#
+    # ===== SECRETS =====# // Not yet implemented
 
     # [plugins.secrets]
     # files = []
