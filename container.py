@@ -2,9 +2,16 @@ import os
 import io
 import toml
 import json
+import time
+import subprocess
+import atexit
+
+# Using docker lib for both docker and podman
+# as API have similar bindings
 import docker
 import dockerpty
 
+# Custom libs
 import plugins
 
 from logger import *
@@ -101,12 +108,19 @@ class ImageBuilder:
 # and enjoy Podman's benefits (ligntness, native rootless containers..). 
 # I could not find anyone else doing that, but for me it works like a charm.
 class ContainerManager:
-    def __init__(self):
+    def __init__(self, driver: str = 'podman'):
+        self.driver = driver
+
         try:
-            # self.client = docker.from_env()
-            # podman system service --time=0
-            socket = 'unix:///run/user/1000/podman/podman.sock'
-            self.client = docker.DockerClient(base_url = socket)
+            if self.driver == 'podman':
+                self.client = self._from_podman()
+            elif self.driver == 'docker':
+                self.client = self._from_docker()
+            else:
+                raise NotImplementedError()
+
+        except NotImplementedError:
+            panic('Driver type does not exist')
 
         except docker.errors.APIError:
             panic('Could not connect to docker socket')
@@ -114,6 +128,27 @@ class ContainerManager:
         except docker.errors.DockerException as e:
             debug(e)
             panic('Problem trying to run docker')
+
+    # _from_podman() is slightly slower than _from_docker()
+    # as it needs to start podman api service.
+    def _from_podman(self):
+        # podman system service --time=0
+        daemon = subprocess.Popen(["podman","system","service", "--time=0"])
+        atexit.register(daemon.terminate)
+
+        timeout = 5 # socket timeout in sec
+        socket_url = 'unix:///run/user/1000/podman/podman.sock'
+
+        for _ in range(timeout * 5):
+            try:
+                client = docker.DockerClient(base_url = socket_url)
+                return client
+            except: time.sleep(0.2)
+
+        raise docker.errors.APIError()
+
+    def _from_docker(self):
+        return docker.from_env()
 
     # Start container
     def run(self, name: str):
@@ -139,7 +174,9 @@ class ContainerManager:
         )
 
         # Patch dockerpty to make it work with podman (see function doc bellow)
-        dockerpty.RunOperation._container_info = self._container_info
+        if self.driver == 'podman':
+            dockerpty.RunOperation._container_info = self._container_info
+        
         dockerpty.start(self.client.api, container.id)
 
     # Ok let's explain a few things here.
