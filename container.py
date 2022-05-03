@@ -133,14 +133,13 @@ class ContainerManager:
     # _from_podman() is slightly slower than _from_docker()
     # as it needs to start podman api service.
     def _from_podman(self) -> docker.DockerClient:
-        # podman system service --time=0
-        daemon = subprocess.Popen(["podman","system","service", "--time=0"])
+        socket_url = 'unix:///tmp/podman-%s.sock' % os.getuid()
+        socket_timeout = 5 # socket timeout in sec
+
+        daemon = subprocess.Popen(["podman","system","service", "--time=0", socket_url])
         atexit.register(daemon.terminate)
 
-        timeout = 5 # socket timeout in sec
-        socket_url = 'unix:///run/user/%s/podman/podman.sock' % os.getuid()
-
-        for _ in range(timeout * 5):
+        for _ in range(socket_timeout * 5):
             try:
                 client = docker.DockerClient(base_url = socket_url)
                 return client
@@ -158,9 +157,27 @@ class ContainerManager:
 
         img = self.client.images.get(name)
         labels = img.labels
+        if not labels.get('kitt'):
+            warning('%s is not a kitt image, might not work properly.' % name)
+
         hostname = labels.get('hostname', 'kitt')
         volumes = labels.get('bind_volumes', '{}')
         volumes = json.loads(volumes)
+        env = []
+
+        # Setup X11 forwarding
+        # As container network is in host mode, will exploit Xorg
+        # abstract socket instead of /tmp/.X11-unix socket
+        if labels.get('forward_x11'):
+            env.append( 'DISPLAY=%s' % os.environ.get('DISPLAY') )
+            # Is run as root, probably not in xhost auth list
+            if os.getuid() == 0:
+                cmd = [ 'xhost', '+local:%s' % hostname ]
+                subprocess.call(
+                    args   = cmd,
+                    stdout = subprocess.DEVNULL,
+                    stderr = subprocess.STDOUT
+                )
 
         container = self.client.containers.create(
             image        = name,
@@ -172,7 +189,7 @@ class ContainerManager:
             volumes      = volumes,
             detach       = False,
             cap_add      = [ 'CAP_NET_RAW' ],
-            # environment  = env,
+            environment  = env,
         )
 
         # Patch dockerpty to make it work with podman (see function doc bellow)
@@ -229,7 +246,8 @@ class ContainerManager:
                     labels  = {
                         'kitt' : 'v0.1',
                         'hostname' : config['workspace']['hostname'],
-                        'bind_volumes' : json.dumps(volumes)
+                        'bind_volumes' : json.dumps(volumes),
+                        'forward_x11' : config['options']['forward_x11'],
                     }
                 )
         
@@ -273,10 +291,9 @@ class ContainerManager:
         return img
 
     # List kitt labeled images
-    def images(self) -> list[docker.models.images.Image]:
+    def images(self) -> [docker.models.images.Image]:
         try:
             images = self.client.images.list( filters = {'label' : 'kitt'} )
-            print(type(images[0]))
 
         except docker.errors.APIError as e:
             debug(e)
