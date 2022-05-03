@@ -22,6 +22,7 @@ class Config:
     @staticmethod
     def load(config_file: str = None):
         try:
+            custom = {}
             default = toml.load('static/default.toml')
             if config_file:
                 custom = toml.load(config_file)
@@ -111,7 +112,7 @@ class ContainerManager:
     def __init__(self, driver: str = None):
         local = self.get_local_config()
         self.driver = driver or local.get('driver') or 'podman'
-
+        
         try:
             if self.driver == 'podman':
                 self.client = self._from_podman()
@@ -152,6 +153,7 @@ class ContainerManager:
 
     # Start container
     def run(self, name: str):
+        name = 'kitt:%s' % name
         if not self.stat(name):
             panic(f'Image { name } not found locally. Use `pull` command or add `--pull` flag.')
 
@@ -235,19 +237,19 @@ class ContainerManager:
         volumes     = self.volumes(config)
         # print(dockerfile)
         # exit(0)
-        
+
         try:
             with waiter(f'Building image'):
                 self.client.images.build(
+                    tag = 'kitt:%s' % name,
                     fileobj = fileobj,
                     pull = True,
                     nocache = True,
-                    tag     = 'kitt:%s' % name,
                     labels  = {
                         'kitt' : 'v0.1',
                         'hostname' : config['workspace']['hostname'],
                         'bind_volumes' : json.dumps(volumes),
-                        'forward_x11' : config['options']['forward_x11'],
+                        'forward_x11' : str(config['options']['forward_x11']),
                     }
                 )
         
@@ -313,7 +315,13 @@ class ContainerManager:
             sock = '/var/run/docker.sock'
             volset[sock] = { 'bind' : sock, 'mode' : 'rw' }
 
+        # Share home folder (read-write)
+        if config['options']['bind_home_folder']:
+            home = os.environ.get('HOME')
+            volset[home] = { 'bind' : '/root', 'mode' : 'rw'}
+
         # Share ssh folder (read-only)
+        # Will shadow $HOME/.ssh bind if set above
         if config['options']['bind_ssh_folder']:
             ssh = '%s/.ssh' % os.environ.get('HOME')
             volset[ssh] = { 'bind' : '/root/.ssh', 'mode' : 'ro' }

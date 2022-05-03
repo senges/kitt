@@ -1,7 +1,8 @@
 # This is a config file sample
 
 [options]
-bind_ssh_folder = false     # Bind $HOME/.ssh read-only
+bind_home_folder = false    # Bind $HOME with docker $HOME (read-write)
+bind_ssh_folder = false     # Bind $HOME/.ssh (read-only)
 docker_in_docker = false    # Share docker socket
 forward_x11 = false         # Configure x11 forward
 
@@ -27,10 +28,11 @@ volumes = []        # Remove if any (see bellow)
 
     # ===== ZSH =====#
 
-    [plugins.zsh]
-    theme = "afowler"
-    plugins = []    # Plugins name or link
-    extras = []     # Extra line for .zshrc
+    # [plugins.zsh]
+    # theme = "afowler"
+    # plugins = []    # Plugins name or link
+    # extras = []     # Extra line for .zshrc
+    # alias = []      # Remove if any (see bellow)
 
     # # Add zsh alias (multiple)
     # [[plugins.zsh.alias]]
