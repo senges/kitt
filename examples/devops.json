@@ -1,0 +1,122 @@
+{
+    "options": {
+        "bind_ssh_folder": true,
+        "bind_home_folder": true,
+        "forward_x11": true,
+        "docker_in_docker": true
+    },
+    "workspace": {
+        "hostname": "devops",
+        "tools": [
+            "ansible",
+            "docker",
+            "docker-compose",
+            "dog",
+            "gcc",
+            "git",
+            "golang",
+            "helm",
+            "htop",
+            "knative-client",
+            "kubectl",
+            "kubectx",
+            "make",
+            "mysql-client",
+            "netcat",
+            "scw",
+            "terraform",
+            "thefuck",
+            "vim",
+            "xclip"
+        ],
+        "volumes": [
+            {
+                "host": "/tmp/kitt",
+                "bind": "/tmp",
+                "mode": "rw"
+            }
+        ],
+        "envs": [
+            {
+                "name": "DOCKER_BUILDKIT",
+                "value": "1"
+            },
+            {
+                "name": "TIMER_FORMAT",
+                "value": "[%d]"
+            },
+            {
+                "name": "TIMER_PRECISION",
+                "value": "2"
+            },
+            {
+                "name": "MAGIC_ENTER_GIT_COMMAND",
+                "value": "git status"
+            },
+            {
+                "name": "MAGIC_ENTER_OTHER_COMMAND",
+                "value": "ls"
+            }
+        ]
+    },
+    "plugins": {
+        "zsh": {
+            "theme": "afowler",
+            "plugins": [
+                "aliases",
+                "ansible",
+                "aws",
+                "colored-man-pages",
+                "copybuffer",
+                "docker",
+                "docker-compose",
+                "git",
+                "helm",
+                "kn",
+                "kubectl",
+                "kubectx",
+                "magic-enter",
+                "pip",
+                "python",
+                "terraform",
+                "thefuck",
+                "timer",
+                "urltools",
+                "https://github.com/agkozak/zsh-z"
+            ],
+            "extras": [
+                "eval $(thefuck --alias f)"
+            ],
+            "alias": [
+                {
+                    "name": "reload",
+                    "cmd": "source ~/.zshrc"
+                },
+                {
+                    "name": "sudo",
+                    "cmd": ""
+                },
+                {
+                    "name": "h",
+                    "cmd": "history"
+                },
+                {
+                    "name": "hs",
+                    "cmd": "history | grep -i"
+                },
+                {
+                    "name": "ff",
+                    "cmd": "find . -type f -name"
+                },
+                {
+                    "name": "x",
+                    "cmd": "xclip -sel clip"
+                },
+                {
+                    "name": "drun",
+                    "cmd": "docker run -it --rm"
+                }
+            ]
+        }
+    }
+}
