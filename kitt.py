@@ -46,7 +46,7 @@ def _list():
     """List local images"""
 
     for image in client.images():
-        basenames = map(lambda x: os.path.basename(x), image.tags)
+        basenames = map(lambda x: os.path.basename(x)[5:], image.tags)
         logger.info(' '.join(basenames))
 
 @main.command('refresh')
