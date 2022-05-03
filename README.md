@@ -46,6 +46,16 @@ At runtime, Kitt will create a container from this image, spawn a shell inside a
 For the tool installation part, Kitt relies on [Catalog](https://github.com/senges/catalog). 
 It does provides an uniform way of installing tools inside containers, and can be extended if necessary.
 
+Catalog is also available inside the container :
+
+```
+➜  kitt run devops
+root@kitt:~# catalog htop pulumi
+
+[+] Installing htop
+...
+```
+
 ### Containerization
 
 Kitt is built to work with `Podman` as containerization engine. Podman has great advantages compared to docker: it's 
