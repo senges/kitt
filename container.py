@@ -108,8 +108,9 @@ class ImageBuilder:
 # and enjoy Podman's benefits (ligntness, native rootless containers..). 
 # I could not find anyone else doing that, but for me it works like a charm.
 class ContainerManager:
-    def __init__(self, driver: str = 'podman'):
-        self.driver = driver
+    def __init__(self, driver: str = None):
+        local = self.get_local_config()
+        self.driver = driver or local.get('driver') or 'podman'
 
         try:
             if self.driver == 'podman':
@@ -131,7 +132,7 @@ class ContainerManager:
 
     # _from_podman() is slightly slower than _from_docker()
     # as it needs to start podman api service.
-    def _from_podman(self):
+    def _from_podman(self) -> docker.DockerClient:
         # podman system service --time=0
         daemon = subprocess.Popen(["podman","system","service", "--time=0"])
         atexit.register(daemon.terminate)
@@ -147,7 +148,7 @@ class ContainerManager:
 
         raise docker.errors.APIError()
 
-    def _from_docker(self):
+    def _from_docker(self) -> docker.DockerClient:
         return docker.from_env()
 
     # Start container
@@ -205,7 +206,7 @@ class ContainerManager:
         return infos
 
     # Build kitt image
-    def build(self, config_file, catalog):
+    def build(self, name, config_file, catalog):
         if catalog:
             warning('Catalog custom input files not yet implemented, wille ignore.')
 
@@ -223,8 +224,8 @@ class ContainerManager:
                 self.client.images.build(
                     fileobj = fileobj,
                     pull = True,
-                    # nocache = True,
-                    tag     = 'kittd',
+                    nocache = True,
+                    tag     = 'kitt:%s' % name,
                     labels  = {
                         'kitt' : 'v0.1',
                         'hostname' : config['workspace']['hostname'],
@@ -239,7 +240,7 @@ class ContainerManager:
         except Exception as e:
             debug(e)
 
-    # Pull docker image
+    # Pull image
     def pull(self, name: str):
 
         try:
@@ -259,7 +260,7 @@ class ContainerManager:
         pass
 
     # Check if local image is present
-    def stat(self, name: str):
+    def stat(self, name: str) -> docker.models.images.Image:
         try:
             img = self.client.images.get(name)
 
@@ -272,9 +273,10 @@ class ContainerManager:
         return img
 
     # List kitt labeled images
-    def images(self):
+    def images(self) -> list[docker.models.images.Image]:
         try:
             images = self.client.images.list( filters = {'label' : 'kitt'} )
+            print(type(images[0]))
 
         except docker.errors.APIError as e:
             debug(e)
@@ -285,8 +287,8 @@ class ContainerManager:
 
         return images
 
-    # Docker volume list generation
-    def volumes(self, config: dict):
+    # Volume list generation
+    def volumes(self, config: dict) -> dict:
         volset = {}
 
         # Share docker socket
@@ -312,5 +314,33 @@ class ContainerManager:
             volset[host] = { 'bind' : bind, 'mode' : mode }
 
         return volset
+
+    # Generate local kitt config
+    def set_local_config(self, driver: str):
+        configmap = {}
+        configmap['driver'] = driver
+        
+        if not (home := os.environ.get('HOME')):
+            panic('Could not determine $HOME from env vars')
+
+        home = os.path.join(home, '.kitt')
+
+        if not os.path.exists(home):
+            os.mkdir(home)
+
+        with open(os.path.join(home, 'config.json'), 'w+') as f:
+            json.dump(configmap, f, indent = 4)
+
+    # Fetch local kitt config
+    def get_local_config(self) -> dict:
+        if not (home := os.environ.get('HOME')):
+            return {}
+        
+        config_file = os.path.join(home, '.kitt/config.json')
+        if not os.path.exists(config_file):
+            return {}
+
+        with open(config_file, 'r') as f:
+            return json.load(f)
 
 client = ContainerManager()

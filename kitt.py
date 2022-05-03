@@ -58,20 +58,22 @@ def _refresh():
 
 @main.command('config')
 @click.help_option('-h', '--help')
-@click.confirmation_option(prompt = 'Operation will remove any previous config file. Continue ?')
-def _config():
+@click.confirmation_option('--force', prompt = 'Operation will remove any previous config file. Continue ?')
+@click.option('--driver', prompt = True, default = 'podman', type = click.Choice(['podman', 'docker']))
+def _config(driver):
     """Configure kitt"""
 
-    pass
+    client.set_local_config(driver)
 
 @main.command('build')
 @click.help_option('-h', '--help')
 @click.option('-f', '--file', is_flag = False, multiple = False, help = 'Input kitt file')
 @click.option('-c', '--catalog', is_flag = False, multiple = True, help = 'Input Catalog file')
-def _build(file, catalog):
+@click.argument('name', type = click.STRING)
+def _build(name, file, catalog):
     """Build images from source"""
-
-    client.build(file, catalog)
+    
+    client.build(name, file, catalog)
 
 if __name__ == '__main__':
     main()
