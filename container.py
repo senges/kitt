@@ -137,7 +137,7 @@ class ContainerManager:
         atexit.register(daemon.terminate)
 
         timeout = 5 # socket timeout in sec
-        socket_url = 'unix:///run/user/1000/podman/podman.sock'
+        socket_url = 'unix:///run/user/%s/podman/podman.sock' % os.getuid()
 
         for _ in range(timeout * 5):
             try:
@@ -170,6 +170,7 @@ class ContainerManager:
             network_mode = 'host',
             volumes      = volumes,
             detach       = False,
+            cap_add      = [ 'CAP_NET_RAW' ],
             # environment  = env,
         )
 
@@ -214,17 +215,16 @@ class ContainerManager:
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
         volumes     = self.volumes(config)
-        # debug(dockerfile)
+        # print(dockerfile)
         # exit(0)
-
+        
         try:
             with waiter(f'Building image'):
                 self.client.images.build(
                     fileobj = fileobj,
                     pull = True,
                     # nocache = True,
-                    # tag     = 'kittd',
-                    tag     = 'xx',
+                    tag     = 'kittd',
                     labels  = {
                         'kitt' : 'v0.1',
                         'hostname' : config['workspace']['hostname'],
