@@ -50,7 +50,7 @@ class Config:
 
         return dest
 
-# Docker image abstraction
+# Container Image abstraction
 class ImageBuilder:
     def __init__(self, config):
         try:
@@ -93,11 +93,20 @@ class ImageBuilder:
 
         return dockerfile
 
-# Docker wrapper
-class DockerWrapper:
+# I made the choice to support Podman for a few reasons.
+# One of them is that Podman has an almost perfect compatibility support
+# with docker environment. Podman even expose Docker's API endpoints
+# an translate them to its own API enpoints.
+# So we can use `docker-py` lib on podman socket with almost no additional cost
+# and enjoy Podman's benefits (ligntness, native rootless containers..). 
+# I could not find anyone else doing that, but for me it works like a charm.
+class ContainerManager:
     def __init__(self):
         try:
-            self.client = docker.from_env()
+            # self.client = docker.from_env()
+            # podman system service --time=0
+            socket = 'unix:///run/user/1000/podman/podman.sock'
+            self.client = docker.DockerClient(base_url = socket)
 
         except docker.errors.APIError:
             panic('Could not connect to docker socket')
@@ -118,7 +127,6 @@ class DockerWrapper:
         volumes = json.loads(volumes)
 
         container = self.client.containers.create(
-            # user         = 1000,
             image        = name,
             auto_remove  = True,
             hostname     = hostname,
@@ -126,10 +134,37 @@ class DockerWrapper:
             tty          = True,
             network_mode = 'host',
             volumes      = volumes,
+            detach       = False,
             # environment  = env,
         )
 
+        # Patch dockerpty to make it work with podman (see function doc bellow)
+        dockerpty.RunOperation._container_info = self._container_info
         dockerpty.start(self.client.api, container.id)
+
+    # Ok let's explain a few things here.
+    # This is a monkey patch function to abuse dockerpty.
+    # Podman API does not handle AttachStdin/out/err, or at least it
+    # drops it at container creation time. So dockerpty is broken as
+    # it does check those parameters to decide either it's gonna attach
+    # sockets or not. So we have to mock a fake config on our podman container
+    # to force it to attach sockets on it.
+    @staticmethod
+    def _container_info(itself):
+        monkey_config = {
+            "Config": {
+                "AttachStdin": True,
+                "AttachStdout": True,
+                # "AttachStderr": True, # TODO: Fix this
+                "AttachStderr": False,  # > For some reason I have double stdout and no stderr
+                "Tty": True,
+                "OpenStdin": True,
+                "StdinOnce": True,
+            }
+        }
+        infos = itself.client.inspect_container(itself.container)
+        infos.update(monkey_config)
+        return infos
 
     # Build kitt image
     def build(self, config_file, catalog):
@@ -241,4 +276,4 @@ class DockerWrapper:
 
         return volset
 
-client = DockerWrapper()
+client = ContainerManager()
