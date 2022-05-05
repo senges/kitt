@@ -73,33 +73,39 @@ class ImageBuilder:
 
     def compose(self):
         dockerfile = self.template
+        workspace = self.config['workspace']
 
         # store token => value to replace in template dockerfile
         composer = {}
 
         # Tools to install with Catalog
-        composer['tools'] = self.config['workspace']['tools']
-
-        # Plugins to append in Dockerfile
-        composer['plugins'] = []
+        composer['tools'] = 'RUN catalog -v utils '
+        composer['tools'] += ' '.join(workspace.get('tools', []))
 
         # Evironment variables
         # (Better at runtime ?)
         composer['envs'] = []
-        for env in self.config['workspace']['envs']:
-            line = '\nENV %s="%s"' % (env['name'], env['value'])
+        for env in workspace.get('envs', []):
+            line = 'ENV %s="%s"' % (env['name'], env['value'])
             composer['envs'].append(line)
-
+        
+        # Plugins to append in Dockerfile
+        composer['plugins'] = []
         for name, config in self.config['plugins'].items():
             extra = plugins.compose(name, config)
-            composer['plugins'].append(extra)
-
+            composer['plugins'] += extra
+            composer['plugins'].append('')
+        
         # Replace key by line block in template
         for key, value in composer.items():
-            lineset = ' '.join(value)
-            dockerfile = dockerfile.replace('__%s__' % key, lineset)
+            if isinstance(value, list):
+                value = '\n'.join(value)
+            dockerfile = dockerfile.replace('__%s__' % key, value)
 
         return dockerfile
+
+    def _file(src: str, dest: str) -> [str]:
+        pass
 
 # I made the choice to support Podman for a few reasons.
 # One of them is that Podman has an almost perfect compatibility support
@@ -235,8 +241,8 @@ class ContainerManager:
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
         volumes     = self.volumes(config)
-        # print(dockerfile)
-        # exit(0)
+        print(dockerfile)
+        exit(0)
 
         try:
             with waiter(f'Building image'):
@@ -277,7 +283,7 @@ class ContainerManager:
 
     # Update all local images
     def refresh(self):
-        pass
+        [ img.reload() for img in self.images() ]
 
     # Check if local image is present
     def stat(self, name: str) -> docker.models.images.Image:
@@ -327,7 +333,7 @@ class ContainerManager:
             volset[ssh] = { 'bind' : '/root/.ssh', 'mode' : 'ro' }
 
         # Add custom volumes
-        for vol in config['workspace']['volumes']:
+        for vol in config['workspace'].get('volumes', []):
             host = vol.get('host')
             bind = vol.get('bind')
             mode = vol.get('mode', 'rw')
