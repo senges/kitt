@@ -14,6 +14,7 @@ ENTRYPOINT [ "/bin/bash" ]
 __envs__
 
 # Install Catalog packages
-RUN catalog -v utils __tools__
+__tools__
 
+# Install plugins
 __plugins__

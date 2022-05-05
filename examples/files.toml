@@ -1,0 +1,24 @@
+[workspace]
+hostname = "coolfiles"
+tools = [ "htop", "vim", "jq", "zsteg" ]
+
+[plugins]
+
+    [plugins.copy]
+    [[plugins.copy.files]]
+    src = "/home/user/.tool/config.json"
+    dest = "/root/.tool/config.json"
+
+    [[plugins.copy.files]]
+    src = "mydir/cutom.json"
+    dest = "/opt/tool/conf/custom.json"
+
+    [plugins.git]
+    [[plugins.git.repos]]
+    url = "https://github.com/sudofox/melee.sh.git"
+    target = "/root/.local"
+
+    [plugins.bash]
+    extras = [
+        "source /root/.local/melee.sh/melee.sh"
+    ]

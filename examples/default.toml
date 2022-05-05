@@ -9,8 +9,6 @@ forward_x11 = false         # Configure x11 forward
 [workspace]
 tools = []          # Catalog tools
 hostname = "kitt"   # Container hostname
-envs = []           # Remove if any (see bellow)
-volumes = []        # Remove if any (see bellow)
 
 # [[workspace.envs]]  # Container exported ENV (multiple)
 # name = ""
@@ -24,7 +22,18 @@ volumes = []        # Remove if any (see bellow)
 # Plugins are optional additional
 # features for container customisations.
 # See plugins.py for further informations
+# Plugin order is respected during build procedure.
 [plugins]
+
+    # ===== BASH (builtin)=====#
+
+    # [plugins.bash]
+    # extras = []     # Extra line for .bashrc
+
+    # # Add bash alias (multiple)
+    # [[plugins.bash.alias]]
+    # name = ''
+    # cmd = ''
 
     # ===== ZSH =====#
 
@@ -32,27 +41,45 @@ volumes = []        # Remove if any (see bellow)
     # theme = "afowler"
     # plugins = []    # Plugins name or link
     # extras = []     # Extra line for .zshrc
-    # alias = []      # Remove if any (see bellow)
 
     # # Add zsh alias (multiple)
     # [[plugins.zsh.alias]]
     # name = ''
     # cmd = ''
 
+    # ===== COPY =====#
+
+    # [plugins.copy]    # Copy local file / directory
+    #
+    # [[plugins.copy.files]]   # File / directory entry (multiple)
+    # src = ""                 # Host path
+    # dest = ""                # Container path
+
+    # ===== DOWNLOAD =====#
+
+    # [plugins.download]    # Download ressource from URL
+    #
+    # [[plugins.download.ressources]]   # Ressource to download (multiple)
+    # url = ""                          # Ressource public URL
+    # target = ""                       # Target container path for download
+
+    # ===== GIT CLONE =====#
+
+    # [plugins.git]    # Download ressource from URL
+    #
+    # [[plugins.git.repos]]   # Ressource to download (multiple)
+    # url = ""                # Repository URL
+    # target = ""             # Target clone directory in container
+
     # ===== TMUX =====#
 
     # [plugins.tmux]
     # config = []
 
-    # ===== SCREEN =====#
+    # ===== GNU SCREEN =====#
 
     # [plugins.screen]
     # config = []
-
-    # ===== FILES =====# // Not yet implemented
-
-    # [plugins.files]
-    # files = []
 
     # ===== SECRETS =====# // Not yet implemented
 
