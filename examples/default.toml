@@ -32,8 +32,8 @@ hostname = "kitt"   # Container hostname
 
     # # Add bash alias (multiple)
     # [[plugins.bash.alias]]
-    # name = ''
-    # cmd = ''
+    # name = ""
+    # cmd = ""
 
     # ===== ZSH =====#
 
@@ -44,8 +44,8 @@ hostname = "kitt"   # Container hostname
 
     # # Add zsh alias (multiple)
     # [[plugins.zsh.alias]]
-    # name = ''
-    # cmd = ''
+    # name = ""
+    # cmd = ""
 
     # ===== COPY =====#
 
