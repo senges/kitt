@@ -77,7 +77,7 @@ on the host side instead of root.
 
 Example :
 
-```bash
+```
 alice@host$  id
 uid=1000(alice) gid=1000(alice) groups=1000(alice)
 
