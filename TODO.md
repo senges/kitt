@@ -8,3 +8,4 @@
 ## Mid-Long term
 
 - [ ] Add secret managment
+- [ ] Add sound (see [docker-pulseaudio-example](https://github.com/TheBiggerGuy/docker-pulseaudio-example))

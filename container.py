@@ -241,8 +241,8 @@ class ContainerManager:
         dockerfile  = ImageBuilder(config).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
         volumes     = self.volumes(config)
-        print(dockerfile)
-        exit(0)
+        # print(dockerfile)
+        # exit(0)
 
         try:
             with waiter(f'Building image'):
