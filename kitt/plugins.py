@@ -1,4 +1,4 @@
-from logger import panic
+from .logger import panic
 from abc import ABC as AbstractClass, abstractmethod
 
 # Every plugin must inherit KittPlugin class and implement

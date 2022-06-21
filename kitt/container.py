@@ -11,10 +11,10 @@ import atexit
 import docker
 import dockerpty
 
-# Custom libs
-import plugins
+from . import plugins
+from .logger import *
 
-from logger import *
+PATH =  os.path.dirname(__file__)
 
 # Config utils
 class Config:
@@ -23,7 +23,7 @@ class Config:
     def load(config_file: str = None):
         try:
             custom = {}
-            default = toml.load('static/default.toml')
+            default = toml.load(PATH + '/static/default.toml')
             if config_file:
                 custom = toml.load(config_file)
 
@@ -62,7 +62,7 @@ class Config:
 class ImageBuilder:
     def __init__(self, config):
         try:
-            with open('static/Dockerfile.template', 'r') as df:
+            with open( PATH + '/static/Dockerfile.template', 'r') as df:
                 self.template = df.read()
 
         except Exception as e:
@@ -131,11 +131,11 @@ class ContainerManager:
             panic('Driver type does not exist')
 
         except docker.errors.APIError:
-            panic('Could not connect to docker socket')
+            panic('Could not connect to container socket')
 
         except docker.errors.DockerException as e:
             debug(e)
-            panic('Problem trying to run docker')
+            panic('Problem trying to run container daemon')
 
     # _from_podman() is slightly slower than _from_docker()
     # as it needs to start podman api service.
@@ -143,7 +143,11 @@ class ContainerManager:
         socket_url = 'unix:///tmp/podman-%s.sock' % os.getuid()
         socket_timeout = 5 # socket timeout in sec
 
-        daemon = subprocess.Popen(["podman","system","service", "--time=0", socket_url])
+        try:
+            daemon = subprocess.Popen(["podman","system","service", "--time=0", socket_url])
+        except FileNotFoundError:
+            panic('Podman is not installed.\nIf you want to use Docker instead, run `kitt config --driver docker`.')
+        
         atexit.register(daemon.terminate)
 
         for _ in range(socket_timeout * 5):
