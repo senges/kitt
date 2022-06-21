@@ -2,3 +2,4 @@ docker
 dockerpty
 rich
 toml
+click

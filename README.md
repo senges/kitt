@@ -10,7 +10,7 @@ Install [podman](https://podman.io/getting-started/installation) ([here](https:/
 
 ```
 ➜  apt install podman
-➜  pip install --user -r requirements.txt
+➜  pip install --user kitt-shell
 ```
 
 > Kitt should better run with podman, but still offers Docker compatibility.
