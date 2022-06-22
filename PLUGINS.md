@@ -56,7 +56,7 @@ Bash is already installed by default in kitt base image, but you can customize i
 
 ```toml
 [plugins.bash]
-extras = []     # Extra line for .bashrc
+extras = []     # Extra lines for .bashrc
 
 # Add bash alias (multiple)
 [[plugins.bash.alias]]
@@ -85,7 +85,8 @@ cmd = ""
 Copy host local files inside container. 
 
 **DO NOT** put any sensible file (private keys, tokens, passwords) inside your container if you aim tu push 
-the image to a container registry. Use [secrets](#SECRETS-(Not-yet-implemented)) plugin instead.
+the image to a container registry.  
+Use [secrets](#SECRETS-(Not-yet-implemented)) plugin instead.
 
 ```toml
 [plugins.copy]    # Copy local file / directory
@@ -97,8 +98,7 @@ dest = ""                # Container path
 
 ## DOWNLOAD 
 
-Download ressource from any URL. 
-Uderlying code will use builtin `wget` to fetch ressource(s).
+Download ressource from any URL. Underlying code will use builtin `wget` to fetch ressource(s).
 
 ```toml
 [plugins.download]    # Download ressource from URL

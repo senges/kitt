@@ -10,7 +10,7 @@ Install [podman](https://podman.io/getting-started/installation) ([here](https:/
 
 ```
 ➜  apt install podman
-➜  pip install --user kitt-shell
+➜  pip install kitt
 ```
 
 > Kitt should better run with podman, but still offers Docker compatibility.
@@ -47,7 +47,7 @@ hostname = "kitt"   # Container hostname
 
 # [[workspace.volumes]]   # Container bind volumes (multiple)
 # host = ""   # Local directory
-# bind = ""   # Bin inside container
+# bind = ""   # Bind inside container
 # mode = ""   # Mode (default is 'rw')
 ```
 
@@ -70,7 +70,7 @@ Kitt offers multiple _optional_ plugins to improve environment customization.
 
 See [PLUGINS.md](./PLUGINS.md) for configuration details.
 
-See [plugins.py](./plugins.py) to implement your own plugin.
+See [plugins.py](./kitt/plugins.py) to implement your own plugin.
 
 ## How does it work ?
 
