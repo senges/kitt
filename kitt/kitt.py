@@ -3,7 +3,7 @@
 # =============================================================================
 # Author : @senges
 # Version : March 2022
-# Description : A portable toolbox
+# Description : A portable shell
 # =============================================================================
 
 import os
