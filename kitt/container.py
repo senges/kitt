@@ -256,7 +256,7 @@ class ContainerManager:
                     pull = True,
                     nocache = True,
                     labels  = {
-                        'kitt' : 'v0.1',
+                        'kitt' : 'v0.1.0',
                         'hostname' : config['workspace']['hostname'],
                         'bind_volumes' : json.dumps(volumes),
                         'forward_x11' : str(config['options']['forward_x11']),
