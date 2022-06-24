@@ -8,9 +8,10 @@ Spawn your shell, with your tools, and your config, anywhere.
 
 Install [podman](https://podman.io/getting-started/installation) ([here](https://podman.io/new/2021/06/16/new.html) for ubuntu < 20.10), and python3.
 
-> kitt is distributed on pypi test environment for testing purpose.
-> So temporary solution is to ad `-i https://test.pypi.org/simple/` param to `pip install`.
-> It should be available on main repo in the next few days.
+> **Warning**  
+> kitt is distributed on pypi test environment for testing purpose.  
+> So temporary solution is to ad `-i https://test.pypi.org/simple/` param to `pip install`.  
+> It should be available on main repo in the next few days.  
 
 ```
 ➜  apt install podman
