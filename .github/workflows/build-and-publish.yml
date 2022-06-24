@@ -3,6 +3,8 @@ name: Build pip package and push it to PiPy
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'setup.cfg'
 
 jobs:
   build:
