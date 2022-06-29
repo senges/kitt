@@ -45,6 +45,7 @@ class ZshPlugin(KittPlugin):
         
         # Few default additional config
         self.config['extras'] += [
+            "source ~/.profile"
             "zstyle ':completion:*:commands' rehash 1",
             "export SHELL=/usr/bin/zsh",
             "export EDITOR=$(which vi)"

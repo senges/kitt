@@ -50,6 +50,15 @@ def _list():
         basenames = map(lambda x: os.path.basename(x)[5:], image.tags)
         logger.info(' '.join(basenames))
 
+
+@main.command('remove')
+@click.help_option('-h', '--help')
+@click.argument("name")
+def _remove(name):
+    """Remove local images"""
+
+    client.remove(name)
+
 @main.command('refresh')
 @click.help_option('-h', '--help')
 def _refresh():
@@ -60,7 +69,7 @@ def _refresh():
 @main.command('config')
 @click.help_option('-h', '--help')
 @click.confirmation_option('--force', prompt = 'Operation will remove any previous config file. Continue ?')
-@click.option('--driver', prompt = True, default = 'podman', type = click.Choice(['podman', 'docker']))
+@click.option('--driver', prompt = True, default = 'docker', type = click.Choice(['docker', 'podman']))
 def _config(driver):
     """Configure kitt"""
 

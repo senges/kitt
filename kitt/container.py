@@ -60,14 +60,14 @@ class Config:
 
 # Container Image abstraction
 class ImageBuilder:
-    def __init__(self, config):
+    def __init__(self, config, driver):
         try:
-            with open( PATH + '/static/Dockerfile.template', 'r') as df:
+            with open( f'{PATH}/static/Dockerfile.{driver}', 'r') as df:
                 self.template = df.read()
 
         except Exception as e:
             debug(e)
-            panic('could not open Dockerfile.template')
+            panic('could not open proper Dockerfile for driver ' + drive)
 
         self.config = config
 
@@ -77,6 +77,9 @@ class ImageBuilder:
 
         # store token => value to replace in template dockerfile
         composer = {}
+
+        # Username inside container
+        composer['user'] = workspace.get('user', 'user')
 
         # Tools to install with Catalog
         composer['tools'] = 'RUN catalog -v utils '
@@ -117,7 +120,7 @@ class ImageBuilder:
 class ContainerManager:
     def __init__(self, driver: str = None):
         local = self.get_local_config()
-        self.driver = driver or local.get('driver') or 'podman'
+        self.driver = driver or local.get('driver') or 'docker'
         
         try:
             if self.driver == 'podman':
@@ -202,6 +205,8 @@ class ContainerManager:
             detach       = False,
             cap_add      = [ 'CAP_NET_RAW' ],
             environment  = env,
+            user         = labels.get('user', 'root'),
+            command      = labels.get('command', 'bahs')
         )
 
         # Patch dockerpty to make it work with podman (see function doc bellow)
@@ -242,14 +247,18 @@ class ContainerManager:
         config      = Config.load(config_file)
         # print(json.dumps(config, indent=4))
         # exit(0)
-        dockerfile  = ImageBuilder(config).compose()
+        dockerfile  = ImageBuilder(config, self.driver).compose()
         fileobj     = io.BytesIO(dockerfile.encode('utf-8'))
         volumes     = self.volumes(config)
         # print(dockerfile)
         # exit(0)
 
-        try:
-            with waiter(f'Building image'):
+        user = "root"
+        if self.driver == "podman":
+            user = "1000:1000"
+
+        with waiter(f'Building image'):
+            try:
                 self.client.images.build(
                     tag = 'kitt:%s' % name,
                     fileobj = fileobj,
@@ -260,19 +269,20 @@ class ContainerManager:
                         'hostname' : config['workspace']['hostname'],
                         'bind_volumes' : json.dumps(volumes),
                         'forward_x11' : str(config['options']['forward_x11']),
+                        'user' : user,
+                        'command' : config.get('default_shell', 'bash')
                     }
                 )
-        
-        except docker.errors.APIError as e:
-            debug(e)
-            panic('Could not build image')
+            
+            except docker.errors.APIError as e:
+                debug(e)
+                panic('Could not build image')
 
-        except Exception as e:
-            debug(e)
+            except Exception as e:
+                debug(e)
 
     # Pull image
     def pull(self, name: str):
-
         try:
             with waiter(f'Pulling image { name } from registry'):
                 self.client.images.pull( name )
@@ -284,6 +294,20 @@ class ContainerManager:
             debug(e)
        
         success(f'Image { name } pull done')
+
+    # Remove local image
+    def remove(self, name: str):
+        image = 'kitt:%s' % name
+
+        if not self.stat(image):
+            panic('Local image "%s" does not exist' % name)
+        try:
+            self.client.images.remove(image = image)
+        except Exception as e:
+            debug(e)
+            panic('Could not remove local image "%s"' % name)
+
+        success('Done !')
 
     # Update all local images
     def refresh(self):

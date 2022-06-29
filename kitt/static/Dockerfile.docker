@@ -1,0 +1,38 @@
+# FROM ubuntu:20.04
+FROM senges/catalog:latest
+
+# Set command prefix as non interactive
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG USER=__user__
+ARG SHELL=__shell__
+
+# Default starting workdir is root home
+WORKDIR "/home/${USER}"
+
+# Environment variables
+__envs__
+
+# Install Catalog packages
+__tools__
+
+# Install plugins
+__plugins__
+
+# Setup fixuid for UUIG/GUID reflexion
+RUN addgroup --gid 1000 ${USER} \
+    && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER} \
+    && chsh -s $(which ${SHELL}) ${USER}
+
+RUN curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.5.1/fixuid-0.5.1-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - \
+    && chown root:root /usr/local/bin/fixuid \
+    && chmod 4755 /usr/local/bin/fixuid \
+    && mkdir -p /etc/fixuid \
+    && echo "user: ${USER}\ngroup: ${USER}\n" > /etc/fixuid/config.yml
+
+RUN catalog sudo \
+    && echo '${USER} ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/20-kitt-user
+
+USER ${USER}:${USER}
+
+ENTRYPOINT [ "fixuid", "-q" ]
