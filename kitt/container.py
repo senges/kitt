@@ -187,9 +187,8 @@ class ContainerManager:
             env.append( 'DISPLAY=%s' % os.environ.get('DISPLAY') )
             # Is run as root, probably not in xhost auth list
             if os.getuid() == 0:
-                cmd = [ 'xhost', '+local:%s' % hostname ]
                 subprocess.call(
-                    args   = cmd,
+                    args   = [ 'xhost', '+local:%s' % hostname ],
                     stdout = subprocess.DEVNULL,
                     stderr = subprocess.STDOUT
                 )
@@ -206,7 +205,7 @@ class ContainerManager:
             cap_add      = [ 'CAP_NET_RAW' ],
             environment  = env,
             user         = labels.get('user', 'root'),
-            command      = labels.get('command', 'bahs')
+            command      = labels.get('command', 'bash')
         )
 
         # Patch dockerpty to make it work with podman (see function doc bellow)
@@ -214,6 +213,7 @@ class ContainerManager:
             dockerpty.RunOperation._container_info = self._container_info
         
         dockerpty.start(self.client.api, container.id)
+        
 
     # Ok let's explain a few things here.
     # This is a monkey patch function to abuse dockerpty.
