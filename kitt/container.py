@@ -6,8 +6,6 @@ import time
 import subprocess
 import atexit
 
-# Using docker lib for both docker and podman
-# as API have similar bindings
 import docker
 import dockerpty
 
@@ -16,7 +14,6 @@ from .logger import *
 
 PATH =  os.path.dirname(__file__)
 
-# Config utils
 class Config:
 
     @staticmethod
@@ -58,16 +55,16 @@ class Config:
 
         return dest
 
-# Container Image abstraction
 class ImageBuilder:
     def __init__(self, config):
+        template = '%s/static/Dockerfile.template' % PATH
         try:
-            with open( PATH + '/static/Dockerfile.template', 'r') as df:
+            with open( template , 'r' ) as df:
                 self.template = df.read()
 
         except Exception as e:
             debug(e)
-            panic('could not open Dockerfile.template')
+            panic('could not open ' + template)
 
         self.config = config
 
@@ -77,6 +74,9 @@ class ImageBuilder:
 
         # store token => value to replace in template dockerfile
         composer = {}
+
+        # Username inside container
+        composer['user'] = workspace.get('user', 'user')
 
         # Tools to install with Catalog
         composer['tools'] = 'RUN catalog -v utils '
@@ -107,61 +107,18 @@ class ImageBuilder:
     def _file(src: str, dest: str) -> [str]:
         pass
 
-# I made the choice to support Podman for a few reasons.
-# One of them is that Podman has an almost perfect compatibility support
-# with docker environment. Podman even expose Docker's API endpoints
-# an translate them to its own API enpoints.
-# So we can use `docker-py` lib on podman socket with almost no additional cost
-# and enjoy Podman's benefits (ligntness, native rootless containers..). 
-# I could not find anyone else doing that, but for me it works like a charm.
+# Might still contains legacy code about Podman
+# See branch feat/podman for podman integration wip
 class ContainerManager:
-    def __init__(self, driver: str = None):
-        local = self.get_local_config()
-        self.driver = driver or local.get('driver') or 'podman'
-        
+    def __init__(self):
         try:
-            if self.driver == 'podman':
-                self.client = self._from_podman()
-            elif self.driver == 'docker':
-                self.client = self._from_docker()
-            else:
-                raise NotImplementedError()
-
-        except NotImplementedError:
-            panic('Driver type does not exist')
-
+            self.client = docker.from_env()
         except docker.errors.APIError:
             panic('Could not connect to container socket')
-
         except docker.errors.DockerException as e:
             debug(e)
             panic('Problem trying to run container daemon')
 
-    # _from_podman() is slightly slower than _from_docker()
-    # as it needs to start podman api service.
-    def _from_podman(self) -> docker.DockerClient:
-        socket_url = 'unix:///tmp/podman-%s.sock' % os.getuid()
-        socket_timeout = 5 # socket timeout in sec
-
-        try:
-            daemon = subprocess.Popen(["podman","system","service", "--time=0", socket_url])
-        except FileNotFoundError:
-            panic('Podman is not installed.\nIf you want to use Docker instead, run `kitt config --driver docker`.')
-        
-        atexit.register(daemon.terminate)
-
-        for _ in range(socket_timeout * 5):
-            try:
-                client = docker.DockerClient(base_url = socket_url)
-                return client
-            except: time.sleep(0.2)
-
-        raise docker.errors.APIError()
-
-    def _from_docker(self) -> docker.DockerClient:
-        return docker.from_env()
-
-    # Start container
     def run(self, name: str):
         name = 'kitt:%s' % name
         if not self.stat(name):
@@ -184,9 +141,8 @@ class ContainerManager:
             env.append( 'DISPLAY=%s' % os.environ.get('DISPLAY') )
             # Is run as root, probably not in xhost auth list
             if os.getuid() == 0:
-                cmd = [ 'xhost', '+local:%s' % hostname ]
                 subprocess.call(
-                    args   = cmd,
+                    args   = [ 'xhost', '+local:%s' % hostname ],
                     stdout = subprocess.DEVNULL,
                     stderr = subprocess.STDOUT
                 )
@@ -195,6 +151,7 @@ class ContainerManager:
             image        = name,
             auto_remove  = True,
             hostname     = hostname,
+            extra_hosts  = { hostname : "127.0.0.1" },
             stdin_open   = True,
             tty          = True,
             network_mode = 'host',
@@ -202,37 +159,11 @@ class ContainerManager:
             detach       = False,
             cap_add      = [ 'CAP_NET_RAW' ],
             environment  = env,
+            user         = labels.get('user', 'root'),
+            command      = labels.get('command', 'bash'),
         )
-
-        # Patch dockerpty to make it work with podman (see function doc bellow)
-        if self.driver == 'podman':
-            dockerpty.RunOperation._container_info = self._container_info
         
         dockerpty.start(self.client.api, container.id)
-
-    # Ok let's explain a few things here.
-    # This is a monkey patch function to abuse dockerpty.
-    # Podman API does not handle AttachStdin/out/err, or at least it
-    # drops it at container creation time. So dockerpty is broken as
-    # it does check those parameters to decide either it's gonna attach
-    # sockets or not. So we have to mock a fake config on our podman container
-    # to force it to attach sockets on it.
-    @staticmethod
-    def _container_info(itself):
-        monkey_config = {
-            "Config": {
-                "AttachStdin": True,
-                "AttachStdout": True,
-                # "AttachStderr": True, # TODO: Fix this
-                "AttachStderr": False,  # > For some reason I have double stdout and no stderr
-                "Tty": True,
-                "OpenStdin": True,
-                "StdinOnce": True,
-            }
-        }
-        infos = itself.client.inspect_container(itself.container)
-        infos.update(monkey_config)
-        return infos
 
     # Build kitt image
     def build(self, name, config_file, catalog):
@@ -248,42 +179,55 @@ class ContainerManager:
         # print(dockerfile)
         # exit(0)
 
-        try:
-            with waiter(f'Building image'):
+        with waiter(f'Building image'):
+            try:
                 self.client.images.build(
                     tag = 'kitt:%s' % name,
                     fileobj = fileobj,
                     pull = True,
                     nocache = True,
                     labels  = {
-                        'kitt' : 'v0.1.0',
-                        'hostname' : config['workspace']['hostname'],
-                        'bind_volumes' : json.dumps(volumes),
-                        'forward_x11' : str(config['options']['forward_x11']),
+                        'kitt':          'v0.2',
+                        'hostname':      config['workspace']['hostname'],
+                        'bind_volumes':  json.dumps(volumes),
+                        'forward_x11':   str(config['options']['forward_x11']),
+                        'command':       config.get('default_shell', 'bash'),
+                        'user':          "1000:1000",
+                        'entrypoint':    "fixuid -q",
                     }
                 )
-        
-        except docker.errors.APIError as e:
-            debug(e)
-            panic('Could not build image')
+            
+            except docker.errors.APIError as e:
+                debug(e)
+                panic('Could not build image')
 
-        except Exception as e:
-            debug(e)
+            except Exception as e: debug(e)
 
     # Pull image
     def pull(self, name: str):
+        with waiter(f'Pulling image { name } from registry'):
+            try: self.client.images.pull( name )
 
-        try:
-            with waiter(f'Pulling image { name } from registry'):
-                self.client.images.pull( name )
-        
-        except docker.errors.APIError:
-            panic(f'Could not pull image { name }')
-        
-        except Exception as e:
-            debug(e)
+            except docker.errors.APIError:
+                panic(f'Could not pull image { name }')
+
+            except Exception as e: debug(e)
        
         success(f'Image { name } pull done')
+
+    # Remove local image
+    def remove(self, name: str):
+        image = 'kitt:%s' % name
+
+        if not self.stat(image):
+            panic('Local image "%s" does not exist' % name)
+        try:
+            self.client.images.remove(image = image)
+        except Exception as e:
+            debug(e)
+            panic('Could not remove local image "%s"' % name)
+
+        success('Done !')
 
     # Update all local images
     def refresh(self):
@@ -305,7 +249,7 @@ class ContainerManager:
     # List kitt labeled images
     def images(self) -> [docker.models.images.Image]:
         try:
-            images = self.client.images.list( filters = {'label' : 'kitt'} )
+            images = self.client.images.list( name = "kitt" )
 
         except docker.errors.APIError as e:
             debug(e)
@@ -349,33 +293,5 @@ class ContainerManager:
             volset[host] = { 'bind' : bind, 'mode' : mode }
 
         return volset
-
-    # Generate local kitt config
-    def set_local_config(self, driver: str):
-        configmap = {}
-        configmap['driver'] = driver
-        
-        if not (home := os.environ.get('HOME')):
-            panic('Could not determine $HOME from env vars')
-
-        home = os.path.join(home, '.kitt')
-
-        if not os.path.exists(home):
-            os.mkdir(home)
-
-        with open(os.path.join(home, 'config.json'), 'w+') as f:
-            json.dump(configmap, f, indent = 4)
-
-    # Fetch local kitt config
-    def get_local_config(self) -> dict:
-        if not (home := os.environ.get('HOME')):
-            return {}
-        
-        config_file = os.path.join(home, '.kitt/config.json')
-        if not os.path.exists(config_file):
-            return {}
-
-        with open(config_file, 'r') as f:
-            return json.load(f)
 
 client = ContainerManager()

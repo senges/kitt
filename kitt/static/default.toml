@@ -14,7 +14,9 @@ docker_in_docker = false    # Share docker socket
 forward_x11 = false         # Configure x11 forward
 
 [workspace]
-tools = []          # Catalog tools
-hostname = "kitt"   # Container hostname
+tools = []              # Catalog tools
+user = "user"           # Username inside container
+hostname = "kitt"       # Container hostname
+default_shell = "bash"  # One of bash, zsh, sh, dash
 
 [plugins]

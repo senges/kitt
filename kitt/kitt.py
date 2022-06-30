@@ -28,8 +28,7 @@ def main(ctx, debug):
 def _run(name, pull, volume):
     """Run environment"""
 
-    if pull:
-        client.pull(name)
+    if pull: client.pull(name)
     
     client.run(name)
 
@@ -47,8 +46,16 @@ def _list():
     """List local images"""
 
     for image in client.images():
-        basenames = map(lambda x: os.path.basename(x)[5:], image.tags)
-        logger.info(' '.join(basenames))
+        basename = [ x[5:] for x in image.tags if x.startswith('kitt:')].pop()
+        logger.info('➜ ' + basename)
+
+@main.command('remove')
+@click.help_option('-h', '--help')
+@click.argument("name")
+def _remove(name):
+    """Remove local images"""
+
+    client.remove(name)
 
 @main.command('refresh')
 @click.help_option('-h', '--help')
@@ -56,15 +63,6 @@ def _refresh():
     """Pull latest version of local images"""
 
     client.refresh()
-
-@main.command('config')
-@click.help_option('-h', '--help')
-@click.confirmation_option('--force', prompt = 'Operation will remove any previous config file. Continue ?')
-@click.option('--driver', prompt = True, default = 'podman', type = click.Choice(['podman', 'docker']))
-def _config(driver):
-    """Configure kitt"""
-
-    client.set_local_config(driver)
 
 @main.command('build')
 @click.help_option('-h', '--help')

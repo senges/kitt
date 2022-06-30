@@ -4,11 +4,8 @@ FROM senges/catalog:latest
 # Set command prefix as non interactive
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Default starting workdir is root home
-WORKDIR "/root"
-
-# Default entrypoint is bash (can override)
-ENTRYPOINT [ "/bin/bash" ]
+ARG USER=__user__
+ARG SHELL=__shell__
 
 # Environment variables
 __envs__
@@ -18,3 +15,21 @@ __tools__
 
 # Install plugins
 __plugins__
+
+# Setup fixuid for UUIG/GUID reflexion
+RUN addgroup --gid 1000 ${USER} \
+    && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER} \
+    && chsh -s $(which ${SHELL}) ${USER}
+
+WORKDIR "/home/${USER}"
+
+RUN catalog sudo fixuid \
+    && chown root:root $(which fixuid) \
+    && chmod 4755 $(which fixuid) \
+    && mkdir -p /etc/fixuid \
+    && echo "user: ${USER}\ngroup: ${USER}\n" > /etc/fixuid/config.yml \
+    && echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/20-kitt-user
+
+USER ${USER}:${USER}
+
+ENTRYPOINT [ "fixuid", "-q" ]

@@ -6,6 +6,7 @@ docker_in_docker = true
 
 [workspace]
 hostname = "devops"
+default_shell = "zsh"
 tools = [ 
     "ansible", 
     "docker", 
@@ -87,10 +88,6 @@ value = "ls"
     [[plugins.zsh.alias]]
     name = "reload"
     cmd = "source ~/.zshrc"
-
-    [[plugins.zsh.alias]]
-    name = "sudo"
-    cmd = ""
 
     [[plugins.zsh.alias]]
     name = "h"
