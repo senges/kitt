@@ -77,6 +77,7 @@ class ImageBuilder:
 
         # Username inside container
         composer['user'] = workspace.get('user', 'user')
+        composer['shell'] = workspace.get('default_shell', 'bash')
 
         # Tools to install with Catalog
         composer['tools'] = 'RUN catalog -v utils '
@@ -165,7 +166,6 @@ class ContainerManager:
         
         dockerpty.start(self.client.api, container.id)
 
-    # Build kitt image
     def build(self, name, config_file, catalog):
         if catalog:
             warning('Catalog custom input files not yet implemented, wille ignore.')
@@ -187,7 +187,7 @@ class ContainerManager:
                     pull = True,
                     nocache = True,
                     labels  = {
-                        'kitt':          'v0.2',
+                        'kitt':          'v0.2.1',
                         'hostname':      config['workspace']['hostname'],
                         'bind_volumes':  json.dumps(volumes),
                         'forward_x11':   str(config['options']['forward_x11']),
@@ -203,7 +203,6 @@ class ContainerManager:
 
             except Exception as e: debug(e)
 
-    # Pull image
     def pull(self, name: str):
         with waiter(f'Pulling image { name } from registry'):
             try: self.client.images.pull( name )
@@ -215,7 +214,9 @@ class ContainerManager:
        
         success(f'Image { name } pull done')
 
-    # Remove local image
+    def push(self, name: str, repository: str):
+        panic("Push strategy not yet implemented")
+
     def remove(self, name: str):
         image = 'kitt:%s' % name
 
@@ -229,11 +230,9 @@ class ContainerManager:
 
         success('Done !')
 
-    # Update all local images
     def refresh(self):
         [ img.reload() for img in self.images() ]
 
-    # Check if local image is present
     def stat(self, name: str) -> docker.models.images.Image:
         try:
             img = self.client.images.get(name)

@@ -19,7 +19,7 @@ __plugins__
 # Setup fixuid for UUIG/GUID reflexion
 RUN addgroup --gid 1000 ${USER} \
     && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER} \
-    && chsh -s $(which ${SHELL}) ${USER}
+    && chsh -s $(which ${SHELL} || which bash || which sh) ${USER}
 
 WORKDIR "/home/${USER}"
 
