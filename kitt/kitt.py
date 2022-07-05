@@ -62,6 +62,14 @@ def _remove(name):
     client.remove(name)
 
 
+@main.command('prune')
+@click.help_option('-h', '--help')
+def _prune():
+    """Prune local images"""
+
+    client.prune()
+
+
 @main.command('refresh')
 @click.help_option('-h', '--help')
 def _refresh():
@@ -89,9 +97,19 @@ def _build(name, file, catalog):
 def _push(image, registry, user):
     """Push image to registry"""
 
-    if not user: logger.panic('user parameter cannot be empty')
+    if not user:
+        logger.panic('user parameter cannot be empty')
 
     # client.build(name, file, catalog)
+
+
+@main.command('patch')
+@click.help_option('-h', '--help')
+@click.argument('image', type=click.STRING)
+def _patch(image):
+    """Patch kitt image metadata"""
+
+    client.patch(image)
 
 
 if __name__ == '__main__':

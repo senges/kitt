@@ -5,13 +5,14 @@ from abc import ABC as AbstractClass, abstractmethod
 # custom _generate() method which returns and array of
 # Dockerfile commands.
 
+
 class KittPlugin(AbstractClass):
     def __init__(self, config):
         self.config = config
         self.name = self.__class__.__name__
 
     def generate(self) -> [str]:
-        cmdset = [ '# Plugin:' + self.name ]
+        cmdset = ['# Plugin:' + self.name]
         cmdset += self._generate()
 
         return cmdset
@@ -22,33 +23,39 @@ class KittPlugin(AbstractClass):
     def _generate(self) -> [str]:
         pass
 
+
 class BashPlugin(KittPlugin):
     def _generate(self) -> str:
-        cmd = 'RUN echo "# Kitt Customs" >> /root/.bashrc'
+        cmdset = []
+        cmd = 'RUN echo "# Kitt Customs" >> ${HOME}/.bashrc'
 
         for extra in self.config.get('extras', []):
-            cmd += ' && echo "%s" >> /root/.bashrc' % extra
-        
+            cmd += ' && echo "%s" >> ${HOME}/.bashrc' % extra
+
         for alias in self.config.get('alias', []):
             name, cmd = alias['name'], alias['cmd']
-            cmd += ' && echo alias %s="%s" >> /root/.bashrc' % (name, cmd)
+            cmd += ' && echo alias %s="%s" >> ${HOME}/.bashrc' % (name, cmd)
 
-        return [ cmd ]
+        cmdset.append('USER ${USER}')
+        cmd = cmd.replate(cmd)
+        cmdset.append('USER root')
+        cmd = cmd.replate(cmd)
+
+        return cmdset
+
 
 class ZshPlugin(KittPlugin):
     def _generate(self) -> str:
-
-        cmdset = [ 'RUN catalog -v zsh-in-docker' ]
-        
+        cmdset = ['RUN catalog -v zsh-in-docker']
         cmd = 'RUN zsh-in-docker'
         cmd += ' -t "%s"' % self.config['theme']
-        
+
         # Few default additional config
         self.config['extras'] += [
-            "source ~/.profile"
-            "zstyle ':completion:*:commands' rehash 1",
+            "source ~/.profile",
+            "zstyle \":completion:*:commands\" rehash 1",
             "export SHELL=/usr/bin/zsh",
-            "export EDITOR=$(which vi)"
+            "export EDITOR=$(which vi)",
         ]
 
         self.config['alias'].append({
@@ -60,36 +67,55 @@ class ZshPlugin(KittPlugin):
             cmd += ' -p "%s"' % plugin
 
         for extra in self.config.get('extras', []):
-            cmd += ' -a "%s"' % extra
+            cmd += ' -a \'%s\'' % extra
 
         for alias in self.config.get('alias', []):
-            cmd += ' -a \'alias %s="%s"\'' % (alias['name'], alias['cmd'])
+            cmd += ' -a "alias %s=\\"%s\\""' % (alias['name'], alias['cmd'])
 
+        cmdset.append('USER ${USER}')
         cmdset.append(cmd)
-        cmdset.append('ENTRYPOINT [ "/bin/zsh" ]')
+        cmdset.append('USER root')
+        cmdset.append(cmd)
 
         return cmdset
 
+
 class TmuxPlugin(KittPlugin):
     def _generate(self) -> str:
+        cmdset = []
         cmd = 'RUN catalog -v tmux'
 
         for extra in self.config.get('config', []):
-            cmd += ' && echo "%s" >> /root/.tmux.conf' % extra
+            cmd += ' && echo "%s" >> ${HOME}/.tmux.conf' % extra
 
-        return [ cmd ]
+        cmdset.append('USER ${USER}')
+        cmdset.append(cmd)
+        cmdset.append('USER root')
+        cmdset.append(cmd)
+
+        return cmdset
+
 
 class ScreenPlugin(KittPlugin):
     def _generate(self) -> str:
+        cmdset = []
         cmd = 'RUN catalog -v screen'
 
         for extra in self.config.get('config', []):
-            cmd += ' && echo "%s" >> /root/.screenrc' % extra
+            cmd += ' && echo "%s" >> ${HOME}/.screenrc' % extra
 
-        return [ cmd ]
+        cmdset.append('USER ${USER}')
+        cmdset.append(cmd)
+        cmdset.append('USER root')
+        cmdset.append(cmd)
+
+        return cmdset
+
 
 class CopyPlugin(KittPlugin):
     def _generate(self) -> str:
+        # COPY [--chown=<user>:<group>] <src>... <dest>
+        # COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]
         cmdset = []
 
         for file in self.config.get('files', []):
@@ -98,16 +124,18 @@ class CopyPlugin(KittPlugin):
 
         return cmdset
 
+
 class DownloadPlugin(KittPlugin):
     def _generate(self) -> str:
         cmdset = []
 
         for res in self.config.get('ressources', []):
             url, target = res['url'], res['target']
-            cmd = 'RUN wget -O %s %s --no-check-certificate' %s (target, url)
+            cmd = 'RUN wget -O %s %s --no-check-certificate' % s(target, url)
             cmdset.append(cmd)
 
         return cmdset
+
 
 class GitPlugin(KittPlugin):
     def _generate(self) -> str:
@@ -115,20 +143,22 @@ class GitPlugin(KittPlugin):
 
         for repo in self.config.get('repos', []):
             url, target = repo['url'], repo['target']
-            cmd = 'RUN git clone %s %s' %s (url, target)
+            cmd = 'RUN git clone %s %s' % s(url, target)
             cmdset.append(cmd)
 
         return cmdset
 
+
 plugins = {
-    'bash'   : BashPlugin,
-    'zsh'    : ZshPlugin,
-    'tmux'   : TmuxPlugin,
-    'screen' : ScreenPlugin,
-    'copy'   : CopyPlugin,
-    'git'    : GitPlugin,
-    'download' : DownloadPlugin,
+    'bash': BashPlugin,
+    'zsh': ZshPlugin,
+    'tmux': TmuxPlugin,
+    'screen': ScreenPlugin,
+    'copy': CopyPlugin,
+    'git': GitPlugin,
+    'download': DownloadPlugin,
 }
+
 
 def compose(name: str, conf: dict) -> str:
     plugin = plugins.get(name)

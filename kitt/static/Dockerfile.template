@@ -8,20 +8,12 @@ ARG USER=__user__
 ARG SHELL=__shell__
 
 # Environment variables
+ENV PATH="${PATH}:/opt/.catalog/bin"
 __envs__
-
-# Install Catalog packages
-__tools__
-
-# Install plugins
-__plugins__
 
 # Setup fixuid for UUIG/GUID reflexion
 RUN addgroup --gid 1000 ${USER} \
-    && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER} \
-    && chsh -s $(which ${SHELL} || which bash || which sh) ${USER}
-
-WORKDIR "/home/${USER}"
+    && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER}
 
 RUN catalog sudo fixuid \
     && chown root:root $(which fixuid) \
@@ -29,6 +21,18 @@ RUN catalog sudo fixuid \
     && mkdir -p /etc/fixuid \
     && echo "user: ${USER}\ngroup: ${USER}\n" > /etc/fixuid/config.yml \
     && echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/20-kitt-user
+
+WORKDIR "/home/${USER}"
+
+# Install Catalog packages
+__tools__
+
+# Install plugins
+__plugins__
+
+RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
+    && chsh -s $(which ${SHELL} || which bash || which sh) root \
+    && usermod -aG docker ${USER} || true
 
 USER ${USER}:${USER}
 
