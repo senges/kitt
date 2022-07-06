@@ -9,6 +9,7 @@ ARG SHELL=__shell__
 
 # Environment variables
 ENV PATH="${PATH}:/opt/.catalog/bin"
+CMD export $PATH
 __envs__
 
 # Setup fixuid for UUIG/GUID reflexion

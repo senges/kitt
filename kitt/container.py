@@ -148,7 +148,6 @@ class ContainerManager:
         # // HOSTNAME // #
         hostname = labels.get('hostname', 'kitt')
 
-        # volumes = { "/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}}
         # // VOLUMES // #
         volumes = labels.get('bind_volumes', {})
         user = labels.get('user', 'user')
@@ -158,12 +157,12 @@ class ContainerManager:
             warning("$HOME is not exported, will skip any relative bind volume")
 
         # Share home folder (read-write)
-        if home and config['options']['bind_home_folder']:
+        if home and labels.get('bind_home_folder', False):
             volumes[home] = {'bind': '/home/%s/share' % user, 'mode': 'rw'}
 
         # Share ssh folder (read-only)
         # Will shadow $HOME/.ssh bind if set above
-        if home and config['options']['bind_ssh_folder']:
+        if home and labels.get('bind_ssh_folder', False):
             ssh = '%s/.ssh' % home
             volset[ssh] = {'bind': '/home/%s/.ssh' % user, 'mode': 'ro'}
 

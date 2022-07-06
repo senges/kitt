@@ -120,7 +120,7 @@ class CopyPlugin(KittPlugin):
 
         for file in self.config.get('files', []):
             src, dest = file['src'], file['dest']
-            cmdset.append('COPY %s %s' % (src, dest))
+            cmdset.append('COPY --chown=${USER}:${USER} %s %s' % (src, dest))
 
         return cmdset
 
@@ -148,6 +148,9 @@ class GitPlugin(KittPlugin):
 
         return cmdset
 
+class SecretPlugin(KittPlugin):
+    def _generate(self) -> str:
+        raise NotImplementedError()
 
 plugins = {
     'bash': BashPlugin,
@@ -157,6 +160,7 @@ plugins = {
     'copy': CopyPlugin,
     'git': GitPlugin,
     'download': DownloadPlugin,
+    'secret': SecretPlugin,
 }
 
 
