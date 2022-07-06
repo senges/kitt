@@ -107,13 +107,6 @@ class ImageBuilder:
 
         return dockerfile
 
-    def _file(src: str, dest: str) -> [str]:
-        pass
-
-# Might still contains legacy code about Podman
-# See branch feat/podman for podman integration wip
-
-
 class ContainerManager:
     def _tag(_, x): return 'kitt:%s' % x
 
@@ -126,45 +119,24 @@ class ContainerManager:
             debug(e)
             panic('Problem trying to run container daemon')
 
-    def run(self, image: str):
+    def run(self, image: str, extras: dict = {}):
         env = []
         name = self._tag(image)
 
         if not (image := self.stat(name)):
-            panic(
-                'Image %s not found locally. Use `pull` command or add `--pull` flag.' % image)
+            panic('Image %s not found. Use `pull` command or add `--pull` flag.' % image)
 
         # // LABELS // #
-        labels = image.labels.get('kitt-config', '')
-
-        if not labels:
-            panic('%s is not a kitt image.' % image)
-
-        try:
-            labels = json.loads(labels)
-        except:
-            panic("Invalid label format.")
+        labels = self.get_image_labels(image)
 
         # // HOSTNAME // #
         hostname = labels.get('hostname', 'kitt')
 
         # // VOLUMES // #
         volumes = labels.get('bind_volumes', {})
-        user = labels.get('user', 'user')
-        home = os.environ.get('HOME', None)
-
-        if not home:
-            warning("$HOME is not exported, will skip any relative bind volume")
-
-        # Share home folder (read-write)
-        if home and labels.get('bind_home_folder', False):
-            volumes[home] = {'bind': '/home/%s/share' % user, 'mode': 'rw'}
-
-        # Share ssh folder (read-only)
-        # Will shadow $HOME/.ssh bind if set above
-        if home and labels.get('bind_ssh_folder', False):
-            ssh = '%s/.ssh' % home
-            volset[ssh] = {'bind': '/home/%s/.ssh' % user, 'mode': 'ro'}
+        for vol in extras.get('volumes', []):
+            host, bind, mode = self.unpack_volume(vol)
+            volumes[host] = {'bind': bind, 'mode': mode}
 
         # Setup X11 forwarding
         # As container network is in host mode, will exploit Xorg
@@ -196,6 +168,17 @@ class ContainerManager:
         )
 
         dockerpty.start(self.client.api, container.id)
+    
+    @staticmethod
+    def get_image_labels(image: docker.models.images.Image) -> dict:
+        labels = image.labels.get('kitt-config', '')
+
+        if not labels:
+            panic('%s is not a kitt image.' % image)
+        try:
+            return json.loads(labels)
+        except:
+            panic("Invalid label format.")
 
     def build(self, name, config_file, catalog):
         if catalog:
@@ -213,8 +196,6 @@ class ContainerManager:
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
             'hostname':      config['workspace']['hostname'],
-            'bind_home':     config['options']['bind_home_folder'],
-            'bind_ssh':      config['options']['bind_ssh_folder'],
             'forward_x11':   config['options']['forward_x11'],
             'command':       config['workspace']['default_shell'],
             'user':          config['workspace']['user'],
@@ -357,6 +338,21 @@ class ContainerManager:
             debug(e)
 
         return images
+
+    @staticmethod
+    def unpack_volume(volume: str) -> (str, str, str):
+        chunks = vol.split(':')
+        if not (1 < len(chunks) < 4):
+            panic("Invalid --volume flag format")
+
+        host = chunks[0]
+        bind = chunks[1]
+        try:
+            mode = chunks[2]
+        except:
+            mode = "ro"
+
+        return host, bind, mode
 
     # Volume list generation
     def volumes(self, config: dict) -> dict:

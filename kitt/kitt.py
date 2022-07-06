@@ -27,11 +27,15 @@ def main(debug):
 @click.argument('name', type=click.STRING)
 def _run(name, pull, volume):
     """Run environment"""
+    
+    extras = {
+        "volumes" : volume
+    }
 
     if pull:
         client.pull(name)
 
-    client.run(name)
+    client.run(name, extras)
 
 
 @main.command('pull')

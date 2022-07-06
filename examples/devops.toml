@@ -1,6 +1,4 @@
 [options]
-bind_ssh_folder = true
-bind_home_folder = true
 forward_x11 = true
 docker_in_docker = true
 
