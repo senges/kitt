@@ -27,9 +27,9 @@ def main(debug):
 @click.argument('name', type=click.STRING)
 def _run(name, pull, volume):
     """Run environment"""
-    
+
     extras = {
-        "volumes" : volume
+        "volumes": volume
     }
 
     if pull:
@@ -61,7 +61,7 @@ def _list():
 @click.help_option('-h', '--help')
 @click.argument("name")
 def _remove(name):
-    """Remove local images"""
+    """Remove local image"""
 
     client.remove(name)
 
@@ -88,32 +88,22 @@ def _refresh():
 @click.option('-c', '--catalog', is_flag=False, multiple=True, help='Input Catalog file')
 @click.argument('name', type=click.STRING)
 def _build(name, file, catalog):
-    """Build images from source"""
+    """Build image from source"""
 
     client.build(name, file, catalog)
 
 
 @main.command('push')
 @click.help_option('-h', '--help')
-@click.option('-r', '--registry', prompt=True, is_flag=False, multiple=False, default='docker.io', help='Registry URL')
-@click.option('-u', '--user', prompt=True, is_flag=False, multiple=False, help='Username')
+@click.option('-r', '--registry', prompt=True, is_flag=False, multiple=False, help='Registry URL')
 @click.argument('image', type=click.STRING)
-def _push(image, registry, user):
-    """Push image to registry"""
+def _push(image, registry):
+    """Push image to registry (not yet implemented)"""
 
     if not user:
         logger.panic('user parameter cannot be empty')
 
-    # client.build(name, file, catalog)
-
-
-@main.command('patch')
-@click.help_option('-h', '--help')
-@click.argument('image', type=click.STRING)
-def _patch(image):
-    """Patch kitt image metadata"""
-
-    client.patch(image)
+    client.push(image, registry)
 
 
 if __name__ == '__main__':

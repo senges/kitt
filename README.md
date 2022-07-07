@@ -25,8 +25,10 @@ Feed it to Kitt and let the magic happend !
 
 ```
 ➜  kitt build -f examples/devops.conf devops
+✓ Build success !
+
 ➜  kitt run devops
-root@kitt:~# 
+user@kitt:~# 
 ```
 
 ## Configuration
@@ -34,8 +36,6 @@ root@kitt:~#
 
 ```toml
 [options]
-bind_home_folder = false    # Bind $HOME with docker $HOME (read-write)
-bind_ssh_folder = false     # Bind $HOME/.ssh (read-only)
 docker_in_docker = false    # Share docker socket
 forward_x11 = false         # Configure x11 forward
 

@@ -188,11 +188,9 @@ class ContainerManager:
         dockerfile = ImageBuilder(config).compose()
         fileobj = io.BytesIO(dockerfile.encode('utf-8'))
         volumes = self.volumes(config)
-        # print(dockerfile)
-        # exit(0)
 
         bind_config = {
-            'version':       'v0.2.1',
+            'version':       'v0.3',
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
             'hostname':      config['workspace']['hostname'],
@@ -275,55 +273,6 @@ class ContainerManager:
             debug(e)
 
         return None
-
-    def patch(self, name: str):
-        raise NotImplementedError()
-
-        import tempfile
-        tag = self._tag(name)
-
-        if not (image := self.stat(tag)):
-            panic("Image do not exist or is not a kitt image.")
-
-        labels = image.labels.get('kitt-config', {})
-        labels = json.dumps(json.loads(labels), indent=4)
-
-        fd, fname = tempfile.mkstemp()
-        with open(fname, 'w') as f:
-            f.write(labels)
-
-        editor = os.environ.get('EDITOR', 'vi')
-        subprocess.call(
-            editor + ' ' + fname,
-            shell=True
-        )
-
-        with open(fname, 'r') as f:
-            labels = json.load(f)
-
-        # OK this doesn't work
-        # Can't patch image like this
-        image.labels['kitt-config'] = json.dumps(labels)
-        image.tag(tag + '-patch')
-        image.reload()
-
-        # with waiter(f'Generating patch image'):
-        # archive = '/tmp/kitt-export.tar'
-        # with open(archive, 'wb') as f:
-        # self.client.images.load(image.save(named = tag + '-patch'))
-        # self.client.api.import_image_from_stream(image.save(), repository="kitt", tag=name + '-patch')
-        # image.save()
-        #     for chunk in image.save():
-        #         f.write(chunk)
-
-        # with open(archive, 'rb') as f:
-        #     self.client.api.load_image(f.read())
-
-        # self.client.api.import_image(src=archive, repository="kitt", tag=name + '-patch')
-
-        # os.close(fd)
-        # os.unlink(fname)
-        # os.unlink(archive)
 
     # List kitt labeled images
     def images(self) -> [docker.models.images.Image]:
