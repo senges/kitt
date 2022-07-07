@@ -286,7 +286,7 @@ class ContainerManager:
             labels = json.dumps(json.load(f))
 
         dockerfile = 'FROM %s' % tag
-        fileobj=io.BytesIO(dockerfile.encode('utf-8'))
+        fileobj = io.BytesIO(dockerfile.encode('utf-8'))
 
         with waiter(f'Building patched image'):
             try:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # Author : @senges
-# Version : March 2022
+# Version : 0.3 (Jul 2022)
 # Description : A portable shell
 # =============================================================================
 
@@ -26,7 +26,7 @@ def main(debug):
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in OCI format')
 @click.argument('name', type=click.STRING)
 def _run(name, pull, volume):
-    """Run environment"""
+    """Run kitt shell"""
 
     extras = {
         "volumes": volume
@@ -88,7 +88,7 @@ def _refresh():
 @click.option('-c', '--catalog', is_flag=False, multiple=True, help='Input Catalog file')
 @click.argument('name', type=click.STRING)
 def _build(name, file, catalog):
-    """Build image from source"""
+    """Build image from source config file"""
 
     client.build(name, file, catalog)
 
@@ -110,9 +110,10 @@ def _push(image, registry):
 @click.help_option('-h', '--help')
 @click.argument('image', type=click.STRING)
 def _patch(image):
-    """Patch kitt image metadata"""
+    """Patch image runtime metadata"""
 
     client.patch(image)
+
 
 if __name__ == '__main__':
     main()
