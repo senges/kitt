@@ -2,6 +2,7 @@ import os
 import io
 import toml
 import json
+import tempfile
 import subprocess
 
 import docker
@@ -107,6 +108,7 @@ class ImageBuilder:
 
         return dockerfile
 
+
 class ContainerManager:
     def _tag(_, x): return 'kitt:%s' % x
 
@@ -168,7 +170,8 @@ class ContainerManager:
         )
 
         dockerpty.start(self.client.api, container.id)
-    
+        self.client.containers.prune(filters={'label': 'kitt-config'})
+
     @staticmethod
     def get_image_labels(image: docker.models.images.Image) -> dict:
         labels = image.labels.get('kitt-config', '')
@@ -205,6 +208,7 @@ class ContainerManager:
                     tag=self._tag(name),
                     fileobj=fileobj,
                     pull=True,
+                    rm=True,
                     nocache=True,
                     labels={
                         'kitt-config': json.dumps(bind_config)
@@ -218,7 +222,7 @@ class ContainerManager:
             except Exception as e:
                 debug(e)
 
-        success("Build success !")
+        success('Build success !')
 
     def pull(self, name: str):
         with waiter(f'Pulling image { name } from registry'):
@@ -258,6 +262,50 @@ class ContainerManager:
                 panic('Could not remove local image "%s"' % image.tags[0])
 
         self.client.images.prune()
+
+    def patch(self, name: str):
+        tag = self._tag(name)
+
+        if not (image := self.stat(tag)):
+            panic('Image do not exist or is not a kitt image.')
+
+        labels = image.labels.get('kitt-config', {})
+        labels = json.dumps(json.loads(labels), indent=4)
+
+        fd, fname = tempfile.mkstemp()
+        with open(fname, 'w') as f:
+            f.write(labels)
+
+        editor = os.environ.get('EDITOR', 'vi')
+        subprocess.call(
+            editor + ' ' + fname,
+            shell=True
+        )
+
+        with open(fname, 'r') as f:
+            labels = json.dumps(json.load(f))
+
+        dockerfile = 'FROM %s' % tag
+        fileobj=io.BytesIO(dockerfile.encode('utf-8'))
+
+        with waiter(f'Building patched image'):
+            try:
+                self.client.images.build(
+                    tag=tag + '-patch',
+                    fileobj=fileobj,
+                    rm=True,
+                    labels={'kitt-config': labels}
+                )
+            except docker.errors.APIError as e:
+                debug(e)
+                panic('Could not build image')
+            except Exception as e:
+                debug(e)
+
+        success('Patch success "%s-patch" !' % tag)
+
+        os.close(fd)
+        os.unlink(fname)
 
     def refresh(self):
         [img.reload() for img in self.images()]

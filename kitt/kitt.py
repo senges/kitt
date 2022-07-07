@@ -106,5 +106,13 @@ def _push(image, registry):
     client.push(image, registry)
 
 
+@main.command('patch')
+@click.help_option('-h', '--help')
+@click.argument('image', type=click.STRING)
+def _patch(image):
+    """Patch kitt image metadata"""
+
+    client.patch(image)
+
 if __name__ == '__main__':
     main()
