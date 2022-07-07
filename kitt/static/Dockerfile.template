@@ -8,7 +8,6 @@ ARG USER=__user__
 ARG SHELL=__shell__
 
 # Environment variables
-ENV PATH="${PATH}:/opt/.catalog/bin"
 CMD export $PATH
 __envs__
 
