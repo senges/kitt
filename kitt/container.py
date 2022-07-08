@@ -367,7 +367,7 @@ class ContainerManager:
 
     @staticmethod
     def unpack_volume(volume: str) -> (str, str, str):
-        chunks = vol.split(':')
+        chunks = volume.split(':')
         if not (1 < len(chunks) < 4):
             panic("Invalid --volume flag format")
 
