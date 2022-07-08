@@ -38,15 +38,6 @@ def _run(name, pull, volume):
     client.run(name, extras)
 
 
-@main.command('pull')
-@click.help_option('-h', '--help')
-@click.argument('name')
-def _pull(name):
-    """Pull image and exit"""
-
-    client.pull(name)
-
-
 @main.command('list')
 @click.help_option('-h', '--help')
 def _list():
@@ -91,6 +82,16 @@ def _build(name, file, catalog):
     """Build image from source config file"""
 
     client.build(name, file, catalog)
+
+
+@main.command('pull')
+@click.help_option('-h', '--help')
+@click.argument('url', type=click.STRING)
+@click.argument('name', required=False, type=click.STRING)
+def _pull(url):
+    """Pull image and exit"""
+
+    client.pull(url)
 
 
 @main.command('push')

@@ -110,7 +110,6 @@ class ImageBuilder:
 
 
 class ContainerManager:
-    def _tag(_, x): return 'kitt:%s' % x
 
     def __init__(self):
         try:
@@ -128,13 +127,13 @@ class ContainerManager:
         if not (image := self.stat(name)):
             panic('Image %s not found. Use `pull` command or add `--pull` flag.' % image)
 
-        # // LABELS // #
+        # LABELS
         labels = self.get_image_labels(image)
 
-        # // HOSTNAME // #
+        # HOSTNAME
         hostname = labels.get('hostname', 'kitt')
 
-        # // VOLUMES // #
+        # VOLUMES
         volumes = labels.get('bind_volumes', {})
         for vol in extras.get('volumes', []):
             host, bind, mode = self.unpack_volume(vol)
@@ -171,6 +170,9 @@ class ContainerManager:
 
         dockerpty.start(self.client.api, container.id)
         self.client.containers.prune(filters={'label': 'kitt-config'})
+
+    @staticmethod
+    def _tag(x): return 'kitt:%s' % x
 
     @staticmethod
     def get_image_labels(image: docker.models.images.Image) -> dict:
@@ -224,18 +226,33 @@ class ContainerManager:
 
         success('Build success !')
 
-    def pull(self, name: str):
-        with waiter(f'Pulling image { name } from registry'):
-            try:
-                self.client.images.pull(name)
+    def pull(self, url: str, name: str = None):
+        try:
+            tag = url.split(':')[-1]
+            if not tag: 
+                raise
+            if tag == 'latest':
+                warning(
+                    'Tag `latest` is deprecated, use kitt image descriptor instead (Ex. `devops`)')
+            if name:
+                tag = name
 
+        except:
+            panic('Invalide format \[registry]:\[tag]')
+
+        with waiter(f'Pulling image { url } from registry'):
+            try:
+                image = self.client.images.pull(url)
+                if not image.labels.get('kitt-config'):
+                    warning('Image does not look like a kitt image')
+                image.tag('kitt', tag)
             except docker.errors.APIError:
-                panic(f'Could not pull image { name }')
+                panic(f'Could not pull image { url }')
 
             except Exception as e:
                 debug(e)
 
-        success(f'Image { name } pull done')
+        success(f'Image { tag } pull done')
 
     def push(self, repository: str, name: str):
         image = self.stat(self._tag(name))

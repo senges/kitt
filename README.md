@@ -31,6 +31,29 @@ Feed it to Kitt and let the magic happend !
 user@kitt:~# 
 ```
 
+### Kitt CLI reference
+
+```
+➜  kitt --help
+
+Usage: kitt.py [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -h, --help  Show this message and exit.
+  --debug     Debug mode
+
+Commands:
+  build    Build image from source config file
+  list     List local images
+  patch    Patch image runtime metadata
+  prune    Prune local images
+  pull     Pull image and exit
+  push     Push image to registry (not yet implemented)
+  refresh  Pull latest version of local images
+  remove   Remove local image
+  run      Run kitt shell
+```
+
 ## Configuration
 ### Basics
 
