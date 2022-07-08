@@ -97,13 +97,10 @@ def _build(name, file, catalog):
 @click.help_option('-h', '--help')
 @click.option('-r', '--registry', prompt=True, is_flag=False, multiple=False, help='Registry URL')
 @click.argument('image', type=click.STRING)
-def _push(image, registry):
+def _push(registry, image):
     """Push image to registry (not yet implemented)"""
 
-    if not user:
-        logger.panic('user parameter cannot be empty')
-
-    client.push(image, registry)
+    client.push(registry, image)
 
 
 @main.command('patch')

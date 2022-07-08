@@ -237,8 +237,20 @@ class ContainerManager:
 
         success(f'Image { name } pull done')
 
-    def push(self, name: str, repository: str):
-        panic("Push strategy not yet implemented")
+    def push(self, repository: str, name: str):
+        image = self.stat(self._tag(name))
+        while repository.endswith('/'):
+            repository = repository[:-1]
+        if not image:
+            panic("Image not found")
+        try:
+            image.tag(repository, name)
+            output = self.client.images.push(repository, name)
+            self.client.images.remove('%s:%s' % (repository, name))
+            info(output)
+        except Exception as e:
+            debug(e)
+            panic("Something went wrong")
 
     def remove(self, name: str):
         image = self._tag(name)

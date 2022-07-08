@@ -8,11 +8,11 @@
 
 - [x] Add static files onboarding
 - [x] Add dind managment with new user
-- [ ] Add push strategy
+- [x] Add push strategy
 - [ ] Add secret managment
 - [ ] Proper host home mapping of folders / dotfiles
 
 ## Mid-Long term
 
-- [ ] Display building logs (no idea how)
+- [ ] Display building logs (see Image.build second argument as JSON stream)
 - [ ] Add sound (see [docker-pulseaudio-example](https://github.com/TheBiggerGuy/docker-pulseaudio-example))
