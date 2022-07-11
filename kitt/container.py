@@ -1,5 +1,6 @@
 import os
 import io
+import uuid
 import toml
 import json
 import tempfile
@@ -8,9 +9,11 @@ import subprocess
 import docker
 import dockerpty
 
+from fs.tempfs import TempFS
 from typing import Union
 
 from . import plugins
+from .crypto import b64d, uncipher_vault, secure_prompt
 from .logger import *
 
 PATH = os.path.dirname(__file__)
@@ -139,6 +142,18 @@ class ContainerManager:
             host, bind, mode = self.unpack_volume(vol)
             volumes[host] = {'bind': bind, 'mode': mode}
 
+        # VAULT
+        secrets = self.uncipher_vault(image)
+        if secrets:
+            fs = TempFS()
+            fs_root = fs.getsyspath("/")
+            for secret in secrets:
+                sname = str(uuid.uuid4())
+                spath = os.path.join(fs_root, sname)
+                with open(spath, 'wb+') as f:
+                    f.write(b64d(secret['file']))
+                volumes[spath] = {'bind': secret['location'], 'mode': 'rw'}
+
         # Setup X11 forwarding
         # As container network is in host mode, will exploit Xorg
         # abstract socket instead of /tmp/.X11-unix socket
@@ -169,7 +184,10 @@ class ContainerManager:
         )
 
         dockerpty.start(self.client.api, container.id)
-        self.client.containers.prune(filters={'label': 'kitt-config'})
+        
+        try: fs.close()
+        except: pass
+        # self.client.containers.prune(filters={'label': 'kitt-config'})
 
     @staticmethod
     def _tag(x): return 'kitt:%s' % x
@@ -185,6 +203,21 @@ class ContainerManager:
         except:
             panic("Invalid label format.")
 
+    @staticmethod
+    def uncipher_vault(image: docker.models.images.Image) -> list:
+        vault = image.labels.get('kitt-vault', '')
+
+        if not vault:
+            return None
+        try:
+            info('Opening Kitt Vault')
+            password = secure_prompt()
+            return uncipher_vault(password, vault)
+        except Exception as e:
+            debug(e)
+            warning("Invalid vault format.")
+            return None
+
     def build(self, name, config_file, catalog):
         if catalog:
             warning('Catalog custom input files not yet implemented, wille ignore.')
@@ -195,7 +228,7 @@ class ContainerManager:
         volumes = self.volumes(config)
 
         bind_config = {
-            'version':       'v0.3',
+            'version':       'v0.4',
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
             'hostname':      config['workspace']['hostname'],
@@ -229,7 +262,7 @@ class ContainerManager:
     def pull(self, url: str, name: str = None):
         try:
             tag = url.split(':')[-1]
-            if not tag: 
+            if not tag:
                 raise
             if tag == 'latest':
                 warning(

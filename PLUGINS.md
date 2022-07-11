@@ -138,10 +138,17 @@ Configure GNU Screen terminal splitter.
 config = []
 ```
 
-## SECRETS (Not yet implemented)
+## SECRETS
 
 Add secrets in your container image.
 
+> **Warning**  
+> Secret plugin loads the whole file in RAM.  
+> It's recommanded to use only small-medium file size.
+
 ```toml
 [plugins.secrets]
-files = []
+[[plugins.secrets.files]]   # File entry (multiple)
+src = ""                    # Host path
+dest = ""                   # Container path
+```

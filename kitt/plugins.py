@@ -1,4 +1,7 @@
-from .logger import panic
+import os
+import json
+from .logger import panic, info, debug
+from .crypto import b64, cipher_vault, secure_prompt
 from abc import ABC as AbstractClass, abstractmethod
 
 # Every plugin must inherit KittPlugin class and implement
@@ -113,7 +116,7 @@ class ScreenPlugin(KittPlugin):
 
 
 class CopyPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> [str]:
         # COPY [--chown=<user>:<group>] <src>... <dest>
         # COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]
         cmdset = []
@@ -148,9 +151,35 @@ class GitPlugin(KittPlugin):
 
         return cmdset
 
+
 class SecretPlugin(KittPlugin):
     def _generate(self) -> str:
-        raise NotImplementedError()
+        info('Remember secret strengh is proportional to password strengh.')
+        info('Most of the time, a strong password is a long password.')
+
+        vault = []
+        password = secure_prompt()
+        
+        for file in self.config.get('files', []):
+            src, dest = file['src'], file['dest']
+            with open(src, 'rb') as f:
+                raw = f.read()
+                raw = b64(raw)
+            vault.append({
+                "location": dest,
+                "file": raw
+            })
+
+        try:
+            vault = cipher_vault(password, vault)
+        except Exception as e:
+            debug(e)
+            panic('Problem while creating vault')
+
+        label = 'LABEL "kitt-vault"="%s"' % vault
+
+        return [label]
+
 
 plugins = {
     'bash': BashPlugin,
@@ -160,7 +189,7 @@ plugins = {
     'copy': CopyPlugin,
     'git': GitPlugin,
     'download': DownloadPlugin,
-    'secret': SecretPlugin,
+    'secrets': SecretPlugin,
 }
 
 

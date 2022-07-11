@@ -81,7 +81,9 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # [plugins.screen]
     # config = []
 
-    # ===== SECRETS =====# // Not yet implemented
+    # ===== SECRETS =====#
 
     # [plugins.secrets]
-    # files = []
+    # [[plugins.secrets.files]]   # File entry (multiple)
+    # src = ""                    # Host path
+    # dest = ""                   # Container path

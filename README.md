@@ -93,7 +93,7 @@ Kitt offers multiple _optional_ plugins to improve environment customization.
 | _git_      | clone git repository inside container |
 | _tmux_     | configure Tmux                        |
 | _screen_   | configure GNU Screen                  |
-| _sercrets_ | add secrets (not yet implemented)     |
+| _sercrets_ | add secrets                           |
 
 See [PLUGINS.md](./PLUGINS.md) for configuration details.
 
