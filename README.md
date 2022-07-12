@@ -10,7 +10,7 @@ Install [Docker](https://docs.docker.com/get-docker) and python3.
 
 > **Warning**  
 > kitt is distributed on pypi test environment for testing purpose.  
-> So temporary solution is to ad `-i https://test.pypi.org/simple/` param to `pip install`.  
+> So temporary solution is to add `-i https://test.pypi.org/simple/` param to `pip install`.  
 > It should be available on main repo in the next few days.  
 
 ```
