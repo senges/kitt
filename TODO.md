@@ -1,7 +1,7 @@
 # TODO
 ## Fixs
 
-- [ ] Path is not properly exported for root, cannot find catalog bin folder
+- [x] Path is not properly exported for root, cannot find catalog bin folder
 - [ ] X11 forwarding mostly works, but xeyes is super laggy
 
 ## Short term
@@ -9,7 +9,7 @@
 - [x] Add static files onboarding
 - [x] Add dind managment with new user
 - [x] Add push strategy
-- [ ] Add secret managment
+- [x] Add secret managment
 - [ ] Proper host home mapping of folders / dotfiles
 
 ## Mid-Long term

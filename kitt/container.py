@@ -228,7 +228,7 @@ class ContainerManager:
         volumes = self.volumes(config)
 
         bind_config = {
-            'version':       'v0.4',
+            'version':       'v0.4.1',
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
             'hostname':      config['workspace']['hostname'],
@@ -237,7 +237,7 @@ class ContainerManager:
             'user':          config['workspace']['user'],
         }
 
-        with waiter(f'Building image'):
+        with waiter('Building image'):
             try:
                 self.client.images.build(
                     tag=self._tag(name),
@@ -295,7 +295,8 @@ class ContainerManager:
             panic("Image not found")
         try:
             image.tag(repository, name)
-            output = self.client.images.push(repository, name)
+            with waiter(f'Pushing image'):
+                output = self.client.images.push(repository, name)
             self.client.images.remove('%s:%s' % (repository, name))
             info(output)
         except Exception as e:
