@@ -2,22 +2,31 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # Author : @senges
-# Version : 0.4.1 (Jul 2022)
+# Version : See __version__.py
 # Description : A portable shell
 # =============================================================================
+
+from . __version__ import __version__
 
 import os
 import click
 
-from .container import client
+from . container import client
 from . import logger
 
 
 @click.group()
 @click.help_option('-h', '--help')
-@click.option('--debug', is_flag=True, help='Debug mode')
+@click.option('--debug', '-d', is_flag=True, help='Debug mode')
 def main(debug):
     logger.config(debug)
+
+
+@main.command('version')
+def _version():
+    """Show version"""
+
+    logger.info(__version__)
 
 
 @main.command('run')

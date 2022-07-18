@@ -5,11 +5,11 @@ docker_in_docker = true
 [workspace]
 hostname = "devops"
 default_shell = "zsh"
-tools = [ 
+tools = [
     "ansible", 
+    "aws-cli",
     "docker", 
     "docker-compose", 
-    "dog", 
     "gcc", 
     "git", 
     "golang", 
@@ -24,13 +24,14 @@ tools = [
     "scw", 
     "terraform", 
     "thefuck", 
+    "vault", 
     "vim", 
     "xclip",
 ]
 
 [[workspace.volumes]]
 host = "/tmp/kitt"
-bind = "/tmp"
+bind = "/tmp/host"
 mode = "rw"
 
 [[workspace.envs]]
@@ -80,7 +81,8 @@ value = "ls"
         "https://github.com/agkozak/zsh-z",
     ]
     extras = [
-        "eval $(thefuck --alias f)"
+        "eval $(thefuck --alias f)",
+        "export PATH=\"$PATH:$(go env GOPATH)/bin\""
     ]
 
     [[plugins.zsh.alias]]
@@ -106,3 +108,27 @@ value = "ls"
     [[plugins.zsh.alias]]
     name = "drun"
     cmd = "docker run -it --rm"
+
+    [[plugins.zsh.alias]]
+    name = "k"
+    cmd = "kubectl"
+
+    [[plugins.zsh.alias]]
+    name = "ll"
+    cmd = "ls -lAh"
+
+    [[plugins.zsh.alias]]
+    name = "lla"
+    cmd = "ls -lah"
+
+    [[plugins.zsh.alias]]
+    name = "df"
+    cmd = "df -h"
+
+    [[plugins.zsh.alias]]
+    name = "free"
+    cmd = "free -m"
+
+    [[plugins.zsh.alias]]
+    name = "duh"
+    cmd = "du -h -d 1"

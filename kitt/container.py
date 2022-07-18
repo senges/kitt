@@ -9,8 +9,12 @@ import subprocess
 import docker
 import dockerpty
 
+
+from importlib.metadata import version as pip_version
 from fs.tempfs import TempFS
 from typing import Union
+
+from . __version__ import __version__
 
 from . import plugins
 from .crypto import b64d, uncipher_vault, secure_prompt
@@ -177,7 +181,7 @@ class ContainerManager:
             tty=True,
             detach=False,
             network_mode='host',
-            cap_add=['CAP_NET_RAW'],
+            cap_add=['CAP_NET_RAW', 'CAP_IPC_LOCK'],
             extra_hosts={hostname: "127.0.0.1"},
             user=labels.get('user', 'root'),
             command=labels.get('command', 'bash'),
@@ -228,13 +232,13 @@ class ContainerManager:
         volumes = self.volumes(config)
 
         bind_config = {
-            'version':       'v0.4.1',
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
             'hostname':      config['workspace']['hostname'],
             'forward_x11':   config['options']['forward_x11'],
             'command':       config['workspace']['default_shell'],
             'user':          config['workspace']['user'],
+            'version':       'v' + __version__,
         }
 
         with waiter('Building image'):
