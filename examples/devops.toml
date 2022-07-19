@@ -3,11 +3,13 @@ forward_x11 = true
 docker_in_docker = true
 
 [workspace]
+user = "charles"
 hostname = "devops"
 default_shell = "zsh"
 tools = [
     "ansible", 
     "aws-cli",
+    "dive", 
     "docker", 
     "docker-compose", 
     "gcc", 
@@ -33,6 +35,11 @@ tools = [
 host = "/tmp/kitt"
 bind = "/tmp/host"
 mode = "rw"
+
+[[workspace.volumes]]
+host = "$HOME"
+bind = "/home/charles/host"
+mode = "ro"
 
 [[workspace.envs]]
 name = "DOCKER_BUILDKIT"

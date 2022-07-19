@@ -8,14 +8,9 @@ Spawn your shell, with your tools, and your config, anywhere.
 
 Install [Docker](https://docs.docker.com/get-docker) and python3.
 
-> **Warning**  
-> kitt is distributed on pypi test environment for testing purpose.  
-> So temporary solution is to add `-i https://test.pypi.org/simple/` param to `pip install`.  
-> It should be available on main repo in the next few days.  
-
 ```
 ➜  curl -sSL https://get.docker.io | bash
-➜  pip install -i https://test.pypi.org/simple/ kitt
+➜  pip install kitt-shell
 ```
 
 ## How to use Kitt

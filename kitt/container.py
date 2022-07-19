@@ -140,8 +140,20 @@ class ContainerManager:
         # HOSTNAME
         hostname = labels.get('hostname', 'kitt')
 
+        # DOCKER IN DOCKER
+        # dind = labels.get('dind')
+        # if dind:
+            # groupadd -g docker2
+            # usermod -aG docker2 __user__
+
         # VOLUMES
         volumes = labels.get('bind_volumes', {})
+        home = os.environ.get('HOME')
+        for vol in list(volumes):
+            if home and '$HOME' in vol:
+                host = vol.replace('$HOME', home)
+                volumes[host] = volumes.pop(vol)
+
         for vol in extras.get('volumes', []):
             host, bind, mode = self.unpack_volume(vol)
             volumes[host] = {'bind': bind, 'mode': mode}
@@ -234,8 +246,9 @@ class ContainerManager:
         bind_config = {
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
-            'hostname':      config['workspace']['hostname'],
             'forward_x11':   config['options']['forward_x11'],
+            'dind':          config['options']['docker_in_docker'],
+            'hostname':      config['workspace']['hostname'],
             'command':       config['workspace']['default_shell'],
             'user':          config['workspace']['user'],
             'version':       'v' + __version__,
