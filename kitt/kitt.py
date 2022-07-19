@@ -108,7 +108,7 @@ def _pull(url):
 @click.option('-r', '--registry', prompt=True, is_flag=False, multiple=False, help='Registry URL')
 @click.argument('image', type=click.STRING)
 def _push(registry, image):
-    """Push image to registry (not yet implemented)"""
+    """Push image to registry"""
 
     client.push(registry, image)
 

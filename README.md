@@ -34,8 +34,8 @@ user@kitt:~#
 Usage: kitt.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  -h, --help  Show this message and exit.
-  --debug     Debug mode
+  -h, --help   Show this message and exit.
+  -d, --debug  Debug mode
 
 Commands:
   build    Build image from source config file
@@ -43,10 +43,11 @@ Commands:
   patch    Patch image runtime metadata
   prune    Prune local images
   pull     Pull image and exit
-  push     Push image to registry (not yet implemented)
+  push     Push image to registry
   refresh  Pull latest version of local images
   remove   Remove local image
   run      Run kitt shell
+  version  Show version
 ```
 
 ## Configuration

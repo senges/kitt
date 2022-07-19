@@ -305,20 +305,25 @@ class ContainerManager:
         success(f'Image { tag } pull done')
 
     def push(self, repository: str, name: str):
+        warning('Push status is not perfectly handled yet.')
+        warning('To see full push trace, run with --debug option.')
+
         image = self.stat(self._tag(name))
         while repository.endswith('/'):
             repository = repository[:-1]
         if not image:
-            panic("Image not found")
+            panic('Image not found')
         try:
             image.tag(repository, name)
             with waiter(f'Pushing image'):
                 output = self.client.images.push(repository, name)
             self.client.images.remove('%s:%s' % (repository, name))
-            info(output)
+            debug(output)
         except Exception as e:
             debug(e)
-            panic("Something went wrong")
+            panic('Something went wrong')
+
+        success('Push done !')
 
     def remove(self, name: str):
         image = self._tag(name)
