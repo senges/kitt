@@ -26,7 +26,7 @@ def main(debug):
 def _version():
     """Show version"""
 
-    logger.info(__version__)
+    logger.info('Kitt v' + __version__)
 
 
 @main.command('run')
