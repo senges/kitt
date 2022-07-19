@@ -31,8 +31,7 @@ __tools__
 __plugins__
 
 RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
-    && chsh -s $(which ${SHELL} || which bash || which sh) root \
-    && usermod -aG docker ${USER} || true
+    && chsh -s $(which ${SHELL} || which bash || which sh) root
 
 USER ${USER}:${USER}
 

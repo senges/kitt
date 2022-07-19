@@ -20,6 +20,7 @@ tools = [
     "knative-client", 
     "kubectl", 
     "kubectx", 
+    "kubens", 
     "make", 
     "mysql-client", 
     "netcat", 
@@ -119,6 +120,14 @@ value = "ls"
     [[plugins.zsh.alias]]
     name = "k"
     cmd = "kubectl"
+
+    [[plugins.zsh.alias]]
+    name = "kns"
+    cmd = "kubens"
+
+    [[plugins.zsh.alias]]
+    name = "kctx"
+    cmd = "kubectx"
 
     [[plugins.zsh.alias]]
     name = "ll"

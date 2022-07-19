@@ -1,5 +1,6 @@
 import os
 import io
+import grp
 import uuid
 import toml
 import json
@@ -139,12 +140,14 @@ class ContainerManager:
 
         # HOSTNAME
         hostname = labels.get('hostname', 'kitt')
-
+        
         # DOCKER IN DOCKER
-        # dind = labels.get('dind')
-        # if dind:
-            # groupadd -g docker2
-            # usermod -aG docker2 __user__
+        groups = []
+        if  labels.get('dind', False):
+            try:
+                host_docker_gid = grp.getgrnam('docker').gr_gid
+                groups.append(host_docker_gid)
+            except: pass
 
         # VOLUMES
         volumes = labels.get('bind_volumes', {})
@@ -197,6 +200,7 @@ class ContainerManager:
             extra_hosts={hostname: "127.0.0.1"},
             user=labels.get('user', 'root'),
             command=labels.get('command', 'bash'),
+            group_add = groups
         )
 
         dockerpty.start(self.client.api, container.id)
