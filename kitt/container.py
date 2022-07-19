@@ -132,7 +132,7 @@ class ContainerManager:
         name = self._tag(image)
 
         if not (image := self.stat(name)):
-            panic('Image %s not found. Use `pull` command or add `--pull` flag.' % image)
+            panic('Image %s not found. Use `pull` command first.' % name)
 
         # LABELS
         labels = self.get_image_labels(image)
@@ -276,23 +276,15 @@ class ContainerManager:
 
         success('Build success !')
 
-    def pull(self, url: str, name: str = None):
-        try:
-            tag = url.split(':')[-1]
-            if not tag:
-                raise
-            if tag == 'latest':
-                warning(
-                    'Tag `latest` is deprecated, use kitt image descriptor instead (Ex. `devops`)')
-            if name:
-                tag = name
+    def pull(self, url: str, tag: str):
+        if tag == 'latest':
+            warning(
+                'Tag `latest` is deprecated, use kitt image descriptor instead (Ex. `devops`)')
 
-        except:
-            panic('Invalide format \[registry]:\[tag]')
-
-        with waiter(f'Pulling image { url } from registry'):
+        full_image = '%s:%s' % (url, tag)
+        with waiter(f'Pulling image { full_image } from registry'):
             try:
-                image = self.client.images.pull(url)
+                image = self.client.images.pull(full_image)
                 if not image.labels.get('kitt-config'):
                     warning('Image does not look like a kitt image')
                 image.tag('kitt', tag)

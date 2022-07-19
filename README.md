@@ -26,6 +26,8 @@ Feed it to Kitt and let the magic happend !
 user@kitt:~# 
 ```
 
+Few commands workflow examples are available in [examples folder](./examples/commands.md).
+
 ### Kitt CLI reference
 
 ```

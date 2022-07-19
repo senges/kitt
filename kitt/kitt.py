@@ -31,18 +31,14 @@ def _version():
 
 @main.command('run')
 @click.help_option('-h', '--help')
-@click.option('-p', '--pull', is_flag=True, help='Pull image if not present')
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in OCI format')
 @click.argument('name', type=click.STRING)
-def _run(name, pull, volume):
+def _run(name, volume):
     """Run kitt shell"""
 
     extras = {
         "volumes": volume
     }
-
-    if pull:
-        client.pull(name)
 
     client.run(name, extras)
 
@@ -96,11 +92,11 @@ def _build(name, file, catalog):
 @main.command('pull')
 @click.help_option('-h', '--help')
 @click.argument('url', type=click.STRING)
-@click.argument('name', required=False, type=click.STRING)
-def _pull(url):
+@click.argument('name', type=click.STRING)
+def _pull(url, name):
     """Pull image and exit"""
 
-    client.pull(url)
+    client.pull(url, name)
 
 
 @main.command('push')
