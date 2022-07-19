@@ -24,7 +24,7 @@
 ➜  kitt list
  toolkit
 
-➜  kitt pull myshell
+➜  kitt pull senges/kitt myshell
 ✓ Image myshell pull done
 
 ➜  kitt remove toolkit
