@@ -26,6 +26,16 @@ Feed it to Kitt and let the magic happend !
 user@kitt:~# 
 ```
 
+Not your computer but you need your tools ? No problem.
+
+```
+➜  kitt pull senges/kitt devops
+✓  Image devops pull done
+
+➜  kitt run devops
+user@kitt:~# 
+```
+
 Few commands workflow examples are available in [examples folder](./examples/commands.md).
 
 ### Kitt CLI reference
