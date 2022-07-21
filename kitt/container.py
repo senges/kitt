@@ -344,6 +344,17 @@ class ContainerManager:
 
         self.client.images.prune()
 
+    def inspect(self, name: str):
+        tag = self._tag(name)
+
+        if not (image := self.stat(tag)):
+            panic('Image do not exist or is not a kitt image.')
+
+        labels = image.labels.get('kitt-config', {})
+        labels = json.dumps(json.loads(labels), indent=4)
+        
+        info(labels)
+
     def patch(self, name: str):
         tag = self._tag(name)
 

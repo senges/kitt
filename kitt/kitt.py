@@ -117,6 +117,14 @@ def _patch(image):
 
     client.patch(image)
 
+@main.command('inspect')
+@click.help_option('-h', '--help')
+@click.argument('image', type=click.STRING)
+def _inspect(image):
+    """Show image metadata"""
+
+    client.inspect(image)
+
 
 if __name__ == '__main__':
     main()
