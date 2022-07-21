@@ -260,6 +260,8 @@ class ContainerManager:
 
         with waiter('Building image'):
             try:
+                # catalog = self.stat('senges/catalog')
+                # catalog.reload()
                 self.client.images.build(
                     tag=self._tag(name),
                     fileobj=fileobj,
