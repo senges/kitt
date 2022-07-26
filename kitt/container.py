@@ -14,6 +14,8 @@ import dockerpty
 from importlib.metadata import version as pip_version
 from fs.tempfs import TempFS
 from typing import Union
+from pwd import getpwnam
+
 
 from . __version__ import __version__
 
@@ -132,6 +134,14 @@ class ContainerManager:
         env = []
         name = self._tag(image)
 
+        user_uid = os.getuid()
+        user_gid = os.getuid()
+
+        if user := extras.get('run_as'):
+            user = getpwnam(user)
+            user_uid = user.pw_uid
+            user_gid = user.pw_gid
+
         if not (image := self.stat(name)):
             panic('Image %s not found. Use `pull` command first.' % name)
 
@@ -179,7 +189,7 @@ class ContainerManager:
         if labels.get('forward_x11'):
             env.append('DISPLAY=%s' % os.environ.get('DISPLAY'))
             # Is run as root, probably not in xhost auth list
-            if os.getuid() == 0:
+            if user_uid == 0:
                 subprocess.call(
                     args=['xhost', '+local:%s' % hostname],
                     stdout=subprocess.DEVNULL,
@@ -198,9 +208,9 @@ class ContainerManager:
             network_mode='host',
             cap_add=['CAP_NET_RAW', 'CAP_IPC_LOCK'],
             extra_hosts={hostname: "127.0.0.1"},
-            user=labels.get('user', 'root'),
             command=labels.get('command', 'bash'),
-            group_add = groups
+            group_add = groups,
+            user='%s:%s' % (user_uid, user_gid),
         )
 
         dockerpty.start(self.client.api, container.id)
