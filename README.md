@@ -43,7 +43,7 @@ Few commands workflow examples are available in [examples folder](./examples/com
 ```
 ➜  kitt --help
 
-Usage: kitt.py [OPTIONS] COMMAND [ARGS]...
+Usage: kitt [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -h, --help   Show this message and exit.
@@ -51,6 +51,7 @@ Options:
 
 Commands:
   build    Build image from source config file
+  inspect  Show image metadata
   list     List local images
   patch    Patch image runtime metadata
   prune    Prune local images
