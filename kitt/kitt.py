@@ -32,12 +32,14 @@ def _version():
 @main.command('run')
 @click.help_option('-h', '--help')
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in OCI format')
+@click.option('-u', '--user', is_flag=False, help='Run as other host user')
 @click.argument('name', type=click.STRING)
-def _run(name, volume):
+def _run(name, volume, user):
     """Run kitt shell"""
 
     extras = {
-        "volumes": volume
+        "volumes": volume,
+        "run_as": user,
     }
 
     client.run(name, extras)
