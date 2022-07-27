@@ -6,11 +6,19 @@ Spawn your shell, with your tools, and your config, anywhere.
 
 ## Installation
 
-Install [Docker](https://docs.docker.com/get-docker) and python3.
+```
+➜  pip install kitt-shell
+```
+
+.. or just run `kitt.py` from sources.
+
+## Dependencies
+
+Kitt is based ont python3 and [Docker](https://docs.docker.com/get-docker).
 
 ```
+➜  apt install -y python3
 ➜  curl -sSL https://get.docker.io | bash
-➜  pip install kitt-shell
 ```
 
 ## How to use Kitt
