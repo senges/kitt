@@ -137,10 +137,13 @@ class ContainerManager:
         user_uid = os.getuid()
         user_gid = os.getuid()
 
-        if user := extras.get('run_as'):
-            user = getpwnam(user)
-            user_uid = user.pw_uid
-            user_gid = user.pw_gid
+        if username := extras.get('run_as'):
+            try:
+                user = getpwnam(username)
+                user_uid = user.pw_uid
+                user_gid = user.pw_gid
+            except:
+                panic("Could not get '%s' user infos" % username)
 
         if not (image := self.stat(name)):
             panic('Image %s not found. Use `pull` command first.' % name)
