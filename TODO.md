@@ -12,9 +12,9 @@
 - [x] Add push strategy
 - [x] Add secret managment
 - [x] Handle local user not in docker group (run as other user ?)
+- [x] Make sure local catalog image is updated
 - [ ] Proper host home mapping of folders / dotfiles
 - [ ] Add custom part for Dockerfile
-- [ ] Make sure local catalog image is updated
 
 ## Mid-Long term
 

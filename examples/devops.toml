@@ -131,11 +131,11 @@ value = "ls"
 
     [[plugins.zsh.alias]]
     name = "ll"
-    cmd = "ls -lAh"
+    cmd = "ls -lh"
 
     [[plugins.zsh.alias]]
     name = "lla"
-    cmd = "ls -lah"
+    cmd = "ls -lAh"
 
     [[plugins.zsh.alias]]
     name = "df"

@@ -1,0 +1,107 @@
+[options]
+forward_x11 = true
+
+[workspace]
+hostname = "ctf"
+default_shell = "zsh"
+tools = [
+    "angr", 
+    "assetfinder", 
+    "dirsearch", 
+    "dnsutils", 
+    "enum4linux-ng", 
+    "exiftool", 
+    "faketime", 
+    "fcrackzip", 
+    "ffuf", 
+    "foremost", 
+    "gcc", 
+    "git", 
+    "gobuster", 
+    "john", 
+    "jwt-cracker", 
+    "make", 
+    "metasploit", 
+    "mysql-client", 
+    "netcat", 
+    "ngrok", 
+    "nikto", 
+    "nmap", 
+    "objdump", 
+    "pwntools", 
+    "radare2", 
+    "samdump2", 
+    "sherlock", 
+    "searchsploit.min", 
+    "sqlmap", 
+    "subfinder", 
+    "sublist3r", 
+    "toutatis", 
+    "tshark", 
+    "vim", 
+    "wpscan", 
+    "xxd", 
+]
+
+[[workspace.volumes]]
+host = "/tmp/kitt"
+bind = "/tmp/host"
+mode = "rw"
+
+[[workspace.volumes]]
+host = "$HOME"
+bind = "/home/ctf/host"
+mode = "ro"
+
+[[workspace.envs]]
+name = "TIMER_FORMAT"
+value = "[%d]"
+
+[[workspace.envs]]
+name = "TIMER_PRECISION"
+value = "2"
+
+[plugins]
+
+    [plugins.zsh]
+    theme = "afowler"
+    plugins = [ 
+        "git", 
+        "pip", 
+        "python", 
+        "timer", 
+        "urltools", 
+        "https://github.com/agkozak/zsh-z",
+    ]
+
+    [[plugins.zsh.alias]]
+    name = "reload"
+    cmd = "source ~/.zshrc"
+
+    [[plugins.zsh.alias]]
+    name = "h"
+    cmd = "history"
+
+    [[plugins.zsh.alias]]
+    name = "hs"
+    cmd = "history | grep -i"
+
+    [[plugins.zsh.alias]]
+    name = "ff"
+    cmd = "find . -type f -name"
+
+    [[plugins.zsh.alias]]
+    name = "x"
+    cmd = "xclip -sel clip"
+
+    [[plugins.zsh.alias]]
+    name = "ll"
+    cmd = "ls -lh"
+
+    [[plugins.zsh.alias]]
+    name = "lla"
+    cmd = "ls -lAh"
+
+    [[plugins.zsh.alias]]
+    name = "duh"
+    cmd = "du -h -d 1"

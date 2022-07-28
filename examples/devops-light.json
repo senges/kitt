@@ -8,38 +8,29 @@
         "default_shell": "zsh",
         "tools": [
             "ansible",
-            "docker",
-            "docker-compose",
-            "dog",
+            "aws-cli",
             "gcc",
-            "git",
-            "golang",
             "helm",
-            "htop",
             "knative-client",
-            "kubectl",
-            "kubectx",
-            "make",
+            "kubectl", 
+            "kubectx", 
+            "kubens", 
             "mysql-client",
             "netcat",
             "scw",
             "terraform",
-            "thefuck",
+            "vault",
             "vim",
             "xclip"
         ],
         "volumes": [
             {
                 "host": "/tmp/kitt",
-                "bind": "/tmp",
+                "bind": "/tmp/host",
                 "mode": "rw"
             }
         ],
         "envs": [
-            {
-                "name": "DOCKER_BUILDKIT",
-                "value": "1"
-            },
             {
                 "name": "TIMER_FORMAT",
                 "value": "[%d]"
@@ -65,10 +56,6 @@
                 "aliases",
                 "ansible",
                 "aws",
-                "colored-man-pages",
-                "copybuffer",
-                "docker",
-                "docker-compose",
                 "git",
                 "helm",
                 "kn",
@@ -78,13 +65,9 @@
                 "pip",
                 "python",
                 "terraform",
-                "thefuck",
                 "timer",
                 "urltools",
                 "https://github.com/agkozak/zsh-z"
-            ],
-            "extras": [
-                "eval $(thefuck --alias f)"
             ],
             "alias": [
                 {
@@ -108,8 +91,36 @@
                     "cmd": "xclip -sel clip"
                 },
                 {
-                    "name": "drun",
-                    "cmd": "docker run -it --rm"
+                    "name": "k",
+                    "cmd": "kubectl"
+                },
+                {
+                    "name": "kns",
+                    "cmd": "kubens"
+                },
+                {
+                    "name": "kctx",
+                    "cmd": "kubectx"
+                },
+                {
+                    "name": "ll",
+                    "cmd": "ls -lh"
+                },
+                {
+                    "name": "lla",
+                    "cmd": "ls -lAh"
+                },
+                {
+                    "name": "df",
+                    "cmd": "df -h"
+                },
+                {
+                    "name": "free",
+                    "cmd": "free -m"
+                },
+                {
+                    "name": "duh",
+                    "cmd": "du -h -d 1"
                 }
             ]
         }
