@@ -1,7 +1,7 @@
 import os
 import json
-from .logger import panic, info, debug
-from .crypto import b64, cipher_vault, secure_prompt
+from kitt.logger import panic, info, debug
+from kitt.crypto import b64, cipher_vault, secure_prompt
 from abc import ABC as AbstractClass, abstractmethod
 
 # Every plugin must inherit KittPlugin class and implement

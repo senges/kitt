@@ -6,13 +6,13 @@
 # Description : A portable shell
 # =============================================================================
 
-from . __version__ import __version__
+from kitt.__version__ import __version__ as version
 
 import os
 import click
 
-from . container import client
-from . import logger
+from kitt.container import client
+from kitt import logger
 
 
 @click.group()
@@ -26,7 +26,7 @@ def main(debug):
 def _version():
     """Show version"""
 
-    logger.info('Kitt v' + __version__)
+    logger.info('Kitt v' + version)
 
 
 @main.command('run')

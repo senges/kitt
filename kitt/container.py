@@ -17,11 +17,11 @@ from typing import Union
 from pwd import getpwnam
 
 
-from . __version__ import __version__
+from kitt.__version__ import __version__
 
-from . import plugins
-from .crypto import b64d, uncipher_vault, secure_prompt
-from .logger import *
+from kitt import plugins
+from kitt.crypto import b64d, uncipher_vault, secure_prompt
+from kitt.logger import *
 
 PATH = os.path.dirname(__file__)
 
@@ -153,14 +153,15 @@ class ContainerManager:
 
         # HOSTNAME
         hostname = labels.get('hostname', 'kitt')
-        
+
         # DOCKER IN DOCKER
         groups = []
-        if  labels.get('dind', False):
+        if labels.get('dind', False):
             try:
                 host_docker_gid = grp.getgrnam('docker').gr_gid
                 groups.append(host_docker_gid)
-            except: pass
+            except:
+                pass
 
         # VOLUMES
         volumes = labels.get('bind_volumes', {})
@@ -212,14 +213,16 @@ class ContainerManager:
             cap_add=['CAP_NET_RAW', 'CAP_IPC_LOCK'],
             extra_hosts={hostname: "127.0.0.1"},
             command=labels.get('command', 'bash'),
-            group_add = groups,
+            group_add=groups,
             user='%s:%s' % (user_uid, user_gid),
         )
 
         dockerpty.start(self.client.api, container.id)
-        
-        try: fs.close()
-        except: pass
+
+        try:
+            fs.close()
+        except:
+            pass
         # self.client.containers.prune(filters={'label': 'kitt-config'})
 
     @staticmethod
@@ -367,7 +370,7 @@ class ContainerManager:
 
         labels = image.labels.get('kitt-config', {})
         labels = json.dumps(json.loads(labels), indent=4)
-        
+
         info(labels)
 
     def patch(self, name: str):
