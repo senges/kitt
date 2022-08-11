@@ -17,7 +17,7 @@ Spawn your shell, with your tools, and your config, anywhere.
 Kitt is based ont python3 and [Docker](https://docs.docker.com/get-docker).
 
 ```
-➜  apt install -y python3
+➜  apt install -y python3 pip3
 ➜  curl -sSL https://get.docker.io | bash
 ```
 
