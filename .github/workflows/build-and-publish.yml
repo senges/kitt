@@ -1,11 +1,11 @@
 name: Build pip package and push it to PiPy
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
       - 'kitt/__version__.py'
-
 jobs:
   build:
     runs-on: ubuntu-latest
