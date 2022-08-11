@@ -17,6 +17,7 @@
 - [ ] Add bash / zsh completion
 - [ ] Proper host home mapping of folders / dotfiles
 - [ ] Add custom part for Dockerfile
+- [ ] package location instead of __file__ : http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
 ## Mid-Long term
 
