@@ -1,20 +1,34 @@
-import os
-import json
+"""Kitt plugins definition and managment"""
+
+from abc import ABC as AbstractClass, abstractmethod
+from typing import List
+
 from kitt.logger import panic, info, debug
 from kitt.crypto import b64, cipher_vault, secure_prompt
-from abc import ABC as AbstractClass, abstractmethod
 
 # Every plugin must inherit KittPlugin class and implement
 # custom _generate() method which returns and array of
 # Dockerfile commands.
 
+# !! Remettre le user et workdir un coup à la fin pour enforce le truc
+
 
 class KittPlugin(AbstractClass):
+    """Kitt plugin abstact definition
+
+    Every plugin must inherit KittPlugin class and implement custom _generate()
+    method which returns and array of Dockerfile commands.
+    """
     def __init__(self, config):
         self.config = config
         self.name = self.__class__.__name__
 
-    def generate(self) -> [str]:
+    def generate(self) -> List[str]:
+        """Generates plugin code
+
+        Returns:
+            List[str]: list of dockerfile commands
+        """
         cmdset = ['# Plugin:' + self.name]
         cmdset += self._generate()
 
@@ -23,12 +37,12 @@ class KittPlugin(AbstractClass):
     # Should be implemented for each inherited Class of KittPlugin
     # Must return a list of lines in dockerfile format.
     @abstractmethod
-    def _generate(self) -> [str]:
+    def _generate(self) -> List[str]:
         pass
 
 
 class BashPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = []
         cmd = 'RUN echo "# Kitt Customs" >> ${HOME}/.bashrc'
 
@@ -40,15 +54,15 @@ class BashPlugin(KittPlugin):
             cmd += ' && echo alias %s="%s" >> ${HOME}/.bashrc' % (name, cmd)
 
         cmdset.append('USER ${USER}')
-        cmd = cmd.replate(cmd)
+        cmdset.append(cmd)
         cmdset.append('USER root')
-        cmd = cmd.replate(cmd)
+        cmdset.append(cmd)
 
         return cmdset
 
 
 class ZshPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = ['RUN catalog -v zsh-in-docker']
         cmd = 'RUN zsh-in-docker'
         cmd += ' -t "%s"' % self.config['theme']
@@ -84,7 +98,7 @@ class ZshPlugin(KittPlugin):
 
 
 class TmuxPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = []
         cmd = 'RUN catalog -v tmux'
 
@@ -100,7 +114,7 @@ class TmuxPlugin(KittPlugin):
 
 
 class ScreenPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = []
         cmd = 'RUN catalog -v screen'
 
@@ -129,37 +143,37 @@ class CopyPlugin(KittPlugin):
 
 
 class DownloadPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = []
 
         for res in self.config.get('ressources', []):
             url, target = res['url'], res['target']
-            cmd = 'RUN wget -O %s %s --no-check-certificate' % s(target, url)
+            cmd = 'RUN wget -O %s %s --no-check-certificate' % (target, url)
             cmdset.append(cmd)
 
         return cmdset
 
 
 class GitPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         cmdset = []
 
         for repo in self.config.get('repos', []):
             url, target = repo['url'], repo['target']
-            cmd = 'RUN git clone %s %s' % s(url, target)
+            cmd = 'RUN git clone %s %s' % (url, target)
             cmdset.append(cmd)
 
         return cmdset
 
 
 class SecretPlugin(KittPlugin):
-    def _generate(self) -> str:
+    def _generate(self) -> List[str]:
         info('Remember secret strengh is proportional to password strengh.')
         info('Most of the time, a strong password is a long password.')
 
         vault = []
         password = secure_prompt()
-        
+
         for file in self.config.get('files', []):
             src, dest = file['src'], file['dest']
             with open(src, 'rb') as f:
@@ -193,9 +207,18 @@ plugins = {
 }
 
 
-def compose(name: str, conf: dict) -> str:
+def compose(name: str, conf: dict) -> List[str]:
+    """generic compose method
+
+    Args:
+        name (str): plugin name
+        conf (dict): plugin configuration
+
+    Returns:
+        List[str]: list of dockerfile commands
+    """
     plugin = plugins.get(name)
     if plugin is None:
-        panic('Unknown plugin "%s"' % name)
+        panic(f'Unknown plugin "{ name }"')
 
     return plugin(conf).generate()

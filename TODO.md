@@ -13,6 +13,8 @@
 - [x] Add secret managment
 - [x] Handle local user not in docker group (run as other user ?)
 - [x] Make sure local catalog image is updated
+- [ ] Make plugins J2 generated
+- [ ] Add bash / zsh completion
 - [ ] Proper host home mapping of folders / dotfiles
 - [ ] Add custom part for Dockerfile
 

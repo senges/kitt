@@ -4,3 +4,4 @@ rich
 toml
 click
 fs
+jinja2

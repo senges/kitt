@@ -4,12 +4,16 @@ FROM senges/catalog:latest
 # Set command prefix as non interactive
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG USER=__user__
-ARG SHELL=__shell__
+ARG USER={{ user }}
+ARG SHELL={{ shell }}
 
 # Environment variables
 CMD export $PATH
-__envs__
+{% for dict_item in parent_list %}
+{% for key, value in dict_item.items() %}
+ENV {{ key }}="{{ value }}"
+{% endfor %}
+{% endfor %}
 
 # Setup fixuid for UUIG/GUID reflexion
 RUN addgroup --gid 1000 ${USER} \
@@ -25,10 +29,13 @@ RUN catalog sudo fixuid \
 WORKDIR "/home/${USER}"
 
 # Install Catalog packages
-__tools__
+RUN catalog -v utils {{ tools | join(' ') }}
 
 # Install plugins
-__plugins__
+{% for plugin in plugins %}
+{{ plugin }}
+
+{% endfor %}
 
 RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
     && chsh -s $(which ${SHELL} || which bash || which sh) root

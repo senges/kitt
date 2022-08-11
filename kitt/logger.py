@@ -1,42 +1,77 @@
+"""Logging and debugging utilities"""
+
 import traceback
 
 from typing import Union
 
-from rich.console import Console, Capture
-from rich.table import Table
-from rich import box
+from rich.console import Console
 
 console = Console()
 console.debug = False
 
-# Display cli success
+
 def success(msg: str):
+    """Display cli success
+
+    Args:
+        msg (str): success message
+    """
     console.print('[green]✓ ' + msg)
 
-# Display cli info
+
 def info(msg: str):
+    """Display cli info
+
+    Args:
+        msg (str): info message
+    """
     console.print('[sky_blue3] ' + msg)
 
-# Display cli info
+
 def warning(msg: str):
+    """Display cli warning
+
+    Args:
+        msg (str): warning message
+    """
     console.print('[yellow]~ ' + msg)
 
-# Provide pending status object
+
 def waiter(msg: str):
+    """Provide pending status object
+
+    Args:
+        msg (str): waiter message
+    """
     return console.status('[bold grey]' + msg)
 
-# Extended log for debug mode
+
 def debug(msg: Union[str, Exception]):
+    """Extended log for debug mode
+
+    Args:
+        msg (Union[str, Exception]): debug data to log
+    """
     if console.debug:
         if not isinstance(msg, str):
             console.log('[grey62]' + str(traceback.format_exc()))
         console.log('[grey62]' + str(msg))
 
-# Config logger
-def config(debug: bool = False):
-    console.debug = debug
 
-# Program panic
-def panic(err: str):
-    console.print('[red]✗ ' + err)
+def config(debug_mode: bool = False):
+    """Config logger
+
+    Args:
+        debug_mode (bool, optional): set debug mode. Defaults to False.
+    """
+    console.debug = debug_mode
+
+
+def panic(msg: str):
+    """Program panic
+
+    Args:
+        msg (str): panic message
+    """
+    console.print('[red]✗ ' + msg)
     exit(1)

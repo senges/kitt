@@ -6,12 +6,11 @@
 # Description : A portable shell
 # =============================================================================
 
-from kitt.__version__ import __version__ as version
 
-import os
 import click
 
-from kitt.container import client
+from kitt.__version__ import __version__
+from kitt.client import client
 from kitt import logger
 
 
@@ -19,6 +18,8 @@ from kitt import logger
 @click.help_option('-h', '--help')
 @click.option('--debug', '-d', is_flag=True, help='Debug mode')
 def main(debug):
+    """main command group"""
+
     logger.config(debug)
 
 
@@ -26,20 +27,22 @@ def main(debug):
 def _version():
     """Show version"""
 
-    logger.info('Kitt v' + version)
+    logger.info('Kitt v' + __version__)
 
 
 @main.command('run')
 @click.help_option('-h', '--help')
 @click.option('-v', '--volume', is_flag=False, multiple=True, help='Additional volume in OCI format')
 @click.option('-u', '--user', is_flag=False, help='Run as other host user')
+@click.option('--dind', is_flag=True, help='Enable docker in docker')
 @click.argument('name', type=click.STRING)
-def _run(name, volume, user):
+def _run(name, volume, user, dind):
     """Run kitt shell"""
 
     extras = {
         "volumes": volume,
         "run_as": user,
+        "dind": dind,
     }
 
     client.run(name, extras)
@@ -50,9 +53,7 @@ def _run(name, volume, user):
 def _list():
     """List local images"""
 
-    for image in client.images():
-        basename = [x[5:] for x in image.tags if x.startswith('kitt:')].pop()
-        logger.info('➜ ' + basename)
+    client.list()
 
 
 @main.command('remove')
@@ -83,41 +84,32 @@ def _refresh():
 @main.command('build')
 @click.help_option('-h', '--help')
 @click.option('-f', '--file', is_flag=False, multiple=False, help='Input kitt file')
-@click.option('-c', '--catalog', is_flag=False, multiple=True, help='Input Catalog file')
 @click.argument('name', type=click.STRING)
-def _build(name, file, catalog):
+def _build(name, file):
     """Build image from source config file"""
 
-    client.build(name, file, catalog)
+    client.build(name, file)
 
 
 @main.command('pull')
 @click.help_option('-h', '--help')
-@click.argument('url', type=click.STRING)
+@click.argument('registry', type=click.STRING)
 @click.argument('name', type=click.STRING)
-def _pull(url, name):
+def _pull(registry, name):
     """Pull image and exit"""
 
-    client.pull(url, name)
+    client.pull(registry, name)
 
 
 @main.command('push')
 @click.help_option('-h', '--help')
-@click.option('-r', '--registry', prompt=True, is_flag=False, multiple=False, help='Registry URL')
-@click.argument('image', type=click.STRING)
-def _push(registry, image):
-    """Push image to registry"""
+@click.argument('registry', type=click.STRING)
+@click.argument('name', type=click.STRING)
+def _push(registry, name):
+    """Push kitt image to registry"""
 
-    client.push(registry, image)
+    client.push(registry, name)
 
-
-@main.command('patch')
-@click.help_option('-h', '--help')
-@click.argument('image', type=click.STRING)
-def _patch(image):
-    """Patch image runtime metadata"""
-
-    client.patch(image)
 
 @main.command('inspect')
 @click.help_option('-h', '--help')
@@ -128,5 +120,14 @@ def _inspect(image):
     client.inspect(image)
 
 
+@main.command('patch')
+@click.help_option('-h', '--help')
+@click.argument('image', type=click.STRING)
+def _patch(image):
+    """Patch image runtime metadata"""
+
+    client.patch(image)
+
+
 if __name__ == '__main__':
-    main()
+    main(False)
