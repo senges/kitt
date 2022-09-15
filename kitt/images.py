@@ -190,6 +190,7 @@ class DockerImageManager(ImageManager):
     def __init__(self, logger):
         self.logger = logger
         self.client = docker.from_env()
+        self.experimental = self.client.info().get('ExperimentalBuild', False)
 
     @docker_error_handler
     def _get(self, name: str, tag: str = 'latest'):
@@ -250,6 +251,7 @@ class DockerImageManager(ImageManager):
             fileobj=dockerfile,
             rm=True,
             nocache=True,
+            squash=self.experimental,
             **kwargs
         )
 
