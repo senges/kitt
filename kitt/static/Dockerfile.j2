@@ -1,45 +1,74 @@
-# FROM ubuntu:20.04
-FROM senges/catalog:latest
+# PRE-BUILD STAGE
+FROM alpine:3.15 as prebuild
 
-# Set command prefix as non interactive
-ARG DEBIAN_FRONTEND=noninteractive
+ARG NIX_VERSION=2.11.0
+ARG NIX_RELEASE=https://releases.nixos.org/nix/nix-${NIX_VERSION}/nix-${NIX_VERSION}-x86_64-linux.tar.xz
+
+RUN wget -O - ${NIX_RELEASE} | tar -C /tmp -xJf - \
+    && mv /tmp/nix-* /nixos
+
+ARG FIXUID_VERSION=0.5.1
+ARG FIXUID_RELEASE=https://github.com/boxboat/fixuid/releases/download/v${FIXUID_VERSION}/fixuid-${FIXUID_VERSION}-linux-amd64.tar.gz
+
+RUN wget -O - ${FIXUID_RELEASE} | tar -C / -xzf -
+
+RUN echo '#!/bin/sh' > /add \
+    && echo 'echo -n $@ | xargs -d " " -I {} echo -n "nixpkgs.{} " | su - $(id -un 1000) -c "xargs nix-env -iA"'  >> /add
+
+# RUNTIME STAGE
+FROM {{ image }}
 
 ARG USER={{ user }}
 ARG SHELL={{ shell }}
+ARG HOME=/home/${USER}
 
-# Environment variables
-CMD export $PATH
-{% for dict_item in parent_list %}
-{% for key, value in dict_item.items() %}
-ENV {{ key }}="{{ value }}"
+# CMD export $PATH
+ENV USER=${USER}
+{% for env in envs %}
+{% for name, value in env.items() %}
+ENV {{ name }}="{{ value }}"
 {% endfor %}
 {% endfor %}
 
-# Setup fixuid for UUIG/GUID reflexion
 RUN addgroup --gid 1000 ${USER} \
-    && adduser --uid 1000 --ingroup ${USER} --home /home/${USER} --shell /bin/bash --disabled-password --gecos "" ${USER}
+    && adduser --uid 1000 --ingroup ${USER} --home ${HOME} \
+    --shell $(which ${SHELL} || which bash || which sh) \
+    --disabled-password --gecos "" ${USER}
 
-RUN catalog sudo fixuid \
-    && chown root:root $(which fixuid) \
-    && chmod 4755 $(which fixuid) \
+# Layer will be squashed at build time
+COPY --from=prebuild /nixos /tmp/nixos
+RUN mkdir /nix \
+    && chown ${USER}:${USER} /nix \
+    && su - ${USER} -c /tmp/nixos/install -- --no-daemon \
+    && ${HOME}/.nix-profile/bin/nix-env -u --always \
+    && echo ". ~/.nix-profile/etc/profile.d/nix.sh" >> ${HOME}/.kittrc \
+    && echo 'export PATH=$PATH:'${HOME}'/.nix-profile/bin' >> /root/.kittrc \
+    && rm -rf /tmp/nixos
+
+COPY --from=prebuild --chown=root:root /add ${HOME}/.nix-profile/bin/add
+RUN chmod +x ${HOME}/.nix-profile/bin/add \
+    && ${HOME}/.nix-profile/bin/add {{ tools | join(' ') }}
+
+COPY --from=prebuild --chown=root:root /fixuid /bin/fixuid
+RUN chmod 4755 /bin/fixuid \
     && mkdir -p /etc/fixuid \
-    && echo "user: ${USER}\ngroup: ${USER}\n" > /etc/fixuid/config.yml \
-    && echo "${USER} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/20-kitt-user
+    && echo "user: ${USER}" > /etc/fixuid/config.yml \
+    && echo "group: ${USER}" >> /etc/fixuid/config.yml
 
-WORKDIR "/home/${USER}"
-
-# Install Catalog packages
-RUN catalog -v utils {{ tools | join(' ') }}
-
-# Install plugins
 {% for plugin in plugins %}
 {{ plugin }}
 
 {% endfor %}
 
+# Last command to patch lack of sudo (enable passwordless `su root')
 RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
-    && chsh -s $(which ${SHELL} || which bash || which sh) root
+    && chsh -s $(which ${SHELL} || which bash || which sh) root \
+    && echo 'source ~/.kittrc' >> ${HOME}/.bashrc \
+    && echo 'source ~/.kittrc' >> /root/.bashrc \
+    && passwd -d user \
+    && passwd -d root
 
 USER ${USER}:${USER}
+WORKDIR ${HOME}
 
 ENTRYPOINT [ "fixuid", "-q" ]

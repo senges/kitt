@@ -53,14 +53,14 @@ class ConfigUtils:
                 raise ValueError
 
         except (FileNotFoundError, IOError):
-            panic('File "%s" does not exist or is not readable.')
+            panic('File does not exist or is not readable.')
 
         except toml.TomlDecodeError:
             if not (custom := json.load(config_file)):
                 raise ValueError from toml.TomlDecodeError
 
         except ValueError:
-            panic('File "%s" content cannot be properly handled.')
+            panic('File content cannot be properly handled.')
 
         except Exception as exception:
             debug(exception)

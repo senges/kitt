@@ -12,7 +12,8 @@ docker_in_docker = false    # Share docker socket
 forward_x11 = false         # Configure x11 forward
 
 [workspace]
-tools = []              # Catalog tools
+image = "ubuntu:22.04"  # OCI System Image
+tools = []              # Nix tools
 user = "user"           # Username inside container
 hostname = "kitt"       # Container hostname
 default_shell = "bash"  # One of bash, zsh, sh, dash

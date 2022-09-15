@@ -144,7 +144,8 @@ class KittClient:
             'shell': workspace.get('default_shell', 'bash'),
             'tools': workspace.get('tools', []),
             'envs': workspace.get('envs', []),
-            # !! Legacy code, needs better plugin generation
+            'image': workspace.get('image', 'ubuntu:22.04'),
+            # !! Legacy code, needs better integration
             'plugins': ['\n'.join(plugins.compose(n, c)) for n, c in config.get('plugins', {}).items()],
         }
 
@@ -177,8 +178,13 @@ class KittClient:
             'version':       'v' + __version__,
         }
 
+        if not self.image_manager.experimental:
+            warning('Docker is not in experimental mode, which is required to squash layers.')
+            warning('To significantly reduce image size, please consider enabling it.')
+
         with waiter('Building image'):
             labels = {'kitt-config': json.dumps(bind_config)}
+
             self.image_manager.build(
                 'kitt', template, name, labels=labels, pull=True)
 
