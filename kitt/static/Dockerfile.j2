@@ -1,19 +1,28 @@
+FROM nixos/nix:2.11.1 as nixbuilder
+
+RUN mkdir -p /output/store
+RUN echo '#!/bin/sh' > /add \
+    && echo 'nix-channel --update' >> /add \
+    && echo 'echo -n $@ | xargs -d " " -I {} echo -n "nixpkgs.{} " | xargs nix-env -p /output/profile -iA' >> /add \
+    && chmod +x /add
+
+RUN /add {{ tools | join(' ') }}
+RUN cp -va $(nix-store -qR /output/profile) /output/store
+
+
 # PRE-BUILD STAGE
 FROM alpine:3.15 as prebuild
-
-ARG NIX_VERSION=2.11.0
-ARG NIX_RELEASE=https://releases.nixos.org/nix/nix-${NIX_VERSION}/nix-${NIX_VERSION}-x86_64-linux.tar.xz
-
-RUN wget -O - ${NIX_RELEASE} | tar -C /tmp -xJf - \
-    && mv /tmp/nix-* /nixos
 
 ARG FIXUID_VERSION=0.5.1
 ARG FIXUID_RELEASE=https://github.com/boxboat/fixuid/releases/download/v${FIXUID_VERSION}/fixuid-${FIXUID_VERSION}-linux-amd64.tar.gz
 
 RUN wget -O - ${FIXUID_RELEASE} | tar -C / -xzf -
 
-RUN echo '#!/bin/sh' > /add \
-    && echo 'echo -n $@ | xargs -d " " -I {} echo -n "nixpkgs.{} " | su - $(id -un 1000) -c "xargs nix-env -iA"'  >> /add
+ARG ZSHID_VERSION=1.1.2
+ARG ZSHID_RELEASE=https://github.com/deluan/zsh-in-docker/releases/download/v${ZSHID_VERSION}/zsh-in-docker.sh
+
+RUN wget -O /zsh-in-docker ${FIXUID_RELEASE}
+
 
 # RUNTIME STAGE
 FROM {{ image }}
@@ -35,20 +44,6 @@ RUN addgroup --gid 1000 ${USER} \
     --shell $(which ${SHELL} || which bash || which sh) \
     --disabled-password --gecos "" ${USER}
 
-# Layer will be squashed at build time
-COPY --from=prebuild /nixos /tmp/nixos
-RUN mkdir /nix \
-    && chown ${USER}:${USER} /nix \
-    && su - ${USER} -c /tmp/nixos/install -- --no-daemon \
-    && ${HOME}/.nix-profile/bin/nix-env -u --always \
-    && echo ". ~/.nix-profile/etc/profile.d/nix.sh" >> ${HOME}/.kittrc \
-    && echo 'export PATH=$PATH:'${HOME}'/.nix-profile/bin' >> /root/.kittrc \
-    && rm -rf /tmp/nixos
-
-COPY --from=prebuild --chown=root:root /add ${HOME}/.nix-profile/bin/add
-RUN chmod +x ${HOME}/.nix-profile/bin/add \
-    && ${HOME}/.nix-profile/bin/add {{ tools | join(' ') }}
-
 COPY --from=prebuild --chown=root:root /fixuid /bin/fixuid
 RUN chmod 4755 /bin/fixuid \
     && mkdir -p /etc/fixuid \
@@ -65,6 +60,8 @@ RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
     && chsh -s $(which ${SHELL} || which bash || which sh) root \
     && echo 'source ~/.kittrc' >> ${HOME}/.bashrc \
     && echo 'source ~/.kittrc' >> /root/.bashrc \
+    && chown ${USER}:${USER} ${HOME}/.kittrc \
+    # && rm -rf /nix/store/*-nixpkgs || true \
     && passwd -d user \
     && passwd -d root
 
