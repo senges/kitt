@@ -13,7 +13,12 @@
 - [x] Add secret managment
 - [x] Handle local user not in docker group (run as other user ?)
 - [x] Make sure local catalog image is updated
-- [ ] Make plugins J2 generated
+- [ ] Add layer caching for prebuild
+- [ ] Better logging
+- [x] Should we properly handle runtimes ? (go, python, ..) => Probably not as exploiting Nix dependencies ?
+- [ ] Shoud share PID with host ? (--pid=host)
+- [ ] Only remap UID/GID when volumes (?)
+- [x] Make plugins J2 generated
 - [ ] Add bash / zsh completion
 - [ ] Proper host home mapping of folders / dotfiles
 - [ ] Add custom part for Dockerfile
@@ -24,6 +29,6 @@
 
 - [x] Kitt inside kitt ? (=> added to catalog)
 - [ ] Attach other TTY to running kitt container
-- [ ] Catalog custom input file not supported yet
+- [x] Catalog custom input file not supported yet => fixed by Nix
 - [ ] Display building logs (see Image.build second argument as JSON stream)
 - [ ] Add sound (see [docker-pulseaudio-example](https://github.com/TheBiggerGuy/docker-pulseaudio-example))
