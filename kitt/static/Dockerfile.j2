@@ -21,7 +21,7 @@ RUN wget -O - ${FIXUID_RELEASE} | tar -C / -xzf -
 ARG ZSHID_VERSION=1.1.2
 ARG ZSHID_RELEASE=https://github.com/deluan/zsh-in-docker/releases/download/v${ZSHID_VERSION}/zsh-in-docker.sh
 
-RUN wget -O /zsh-in-docker ${FIXUID_RELEASE}
+RUN wget -O /zsh-in-docker.sh ${ZSHID_RELEASE}
 
 
 # RUNTIME STAGE
@@ -31,18 +31,19 @@ ARG USER={{ user }}
 ARG SHELL={{ shell }}
 ARG HOME=/home/${USER}
 
-# CMD export $PATH
 ENV USER=${USER}
+ENV LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 {% for env in envs %}
-{% for name, value in env.items() %}
-ENV {{ name }}="{{ value }}"
-{% endfor %}
-{% endfor %}
+ENV {{ env.name }}="{{ env.value }}"
+{%- endfor %}
+
+COPY --from=nixbuilder /output/store /nix/store
+COPY --from=nixbuilder /output/profile/ /usr/local/
 
 RUN addgroup --gid 1000 ${USER} \
     && adduser --uid 1000 --ingroup ${USER} --home ${HOME} \
-    --shell $(which ${SHELL} || which bash || which sh) \
-    --disabled-password --gecos "" ${USER}
+        --shell $(which ${SHELL} || which bash || which sh) \
+        --disabled-password --gecos "" ${USER}
 
 COPY --from=prebuild --chown=root:root /fixuid /bin/fixuid
 RUN chmod 4755 /bin/fixuid \
@@ -55,15 +56,16 @@ RUN chmod 4755 /bin/fixuid \
 
 {% endfor %}
 
-# Last command to patch lack of sudo (enable passwordless `su root')
+# remove root password to patch lack of sudo (enable passwordless `su root')
 RUN chsh -s $(which ${SHELL} || which bash || which sh) ${USER} \
     && chsh -s $(which ${SHELL} || which bash || which sh) root \
-    && echo 'source ~/.kittrc' >> ${HOME}/.bashrc \
-    && echo 'source ~/.kittrc' >> /root/.bashrc \
-    && chown ${USER}:${USER} ${HOME}/.kittrc \
-    # && rm -rf /nix/store/*-nixpkgs || true \
-    && passwd -d user \
-    && passwd -d root
+    # && echo 'source ~/.kittrc' >> ${HOME}/.bashrc \
+    # && echo 'source ~/.kittrc' >> /root/.bashrc \
+    # chown: cannot access '/root/.kittrc': No such file or directory
+    # && chown ${USER}:${USER} ${HOME}/.kittrc \
+    && passwd -d ${USER} \
+    && passwd -d root \
+    && rm -f /tmp/*
 
 USER ${USER}:${USER}
 WORKDIR ${HOME}
