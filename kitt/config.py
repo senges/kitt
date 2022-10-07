@@ -67,7 +67,7 @@ class ConfigUtils:
             panic('Error loading config files.')
 
         # Handle incomplete user config file
-        default = cls.update(default, custom)
+        default = cls.update(custom, default)
 
         return default
 
