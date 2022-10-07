@@ -1,0 +1,7 @@
+COPY --from=prebuild /zsh-in-docker.sh /tmp/zsh-in-docker.sh
+RUN chmod +x /tmp/zsh-in-docker.sh \ 
+    && /tmp/zsh-in-docker.sh -t '{{ theme }}' {% for plugin in plugins %}-p '{{ plugin }}' {% endfor %} \
+        -a 'source ~/.profile' \
+        -a 'zstyle ":completion:*:commands" rehash 1' \
+        -a 'export SHELL=/usr/bin/zsh' \
+        -a 'export EDITOR=$(which vi)' {% for extra in extras %}-a '{{ extra }}' {% endfor %}{% for alias in aliases %}-a 'alias {{ alias.name }}="{{ alias.cmd }}"' {% endfor %}

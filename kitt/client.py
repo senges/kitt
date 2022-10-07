@@ -82,18 +82,6 @@ class KittClient:
             host, bind, mode = unpack_volume(vol)
             volumes[host] = {'bind': bind, 'mode': mode}
 
-        # Maybe wrap and catch .close()
-        bindfs = None
-        if vault := self._vault(name):
-            bindfs = TempFS()
-            fs_root = bindfs.getsyspath("/")
-            for secret in vault:
-                sname = str(uuid.uuid4())
-                spath = os.path.join(fs_root, sname)
-                with open(spath, 'wb+') as f:
-                    f.write(b64d(secret['file']))
-                volumes[spath] = {'bind': secret['location'], 'mode': 'rw'}
-
         # As container network is in host mode, will exploit Xorg
         # abstract socket instead of /tmp/.X11-unix socket
         if config.get('forward_x11'):
@@ -119,13 +107,13 @@ class KittClient:
             user=f'{ user_uid }:{ user_gid }',
         )
 
-        try:
-            bindfs.close()
-        except AttributeError:
-            pass
-        except TempFSErrors.OperationFailed:
-            warning('Could not properly remove local tempfs.')
-            warning('Sensible data might remain on disk.')
+        # try:
+        #     bindfs.close()
+        # except AttributeError:
+        #     pass
+        # except TempFSErrors.OperationFailed:
+        #     warning('Could not properly remove local tempfs.')
+        #     warning('Sensible data might remain on disk.')
 
     def build(self, name: str, config_file: str):
         """Build kitt image using provided config file
@@ -135,6 +123,7 @@ class KittClient:
             config_file (str): config file path
             catalog (str): custom catalog file
         """
+
         config = ConfigUtils.load(config_file)
         workspace = config.get('workspace')
         options = config.get('options')
@@ -145,8 +134,7 @@ class KittClient:
             'tools': workspace.get('tools', []),
             'envs': workspace.get('envs', []),
             'image': workspace.get('image', 'ubuntu:22.04'),
-            # !! Legacy code, needs better integration
-            'plugins': ['\n'.join(plugins.compose(n, c)) for n, c in config.get('plugins', {}).items()],
+            'plugins': [ plugins.compose(n, c) for n, c in config.get('plugins', {}).items() ],
         }
 
         template = self.image_composer.compose(context)
