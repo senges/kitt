@@ -1,0 +1,3 @@
+{% for repo in repos %}
+RUN git clone --depth 1 {{ repo.url }} {{ repo.target }}
+{% endfor %}

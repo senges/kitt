@@ -1,0 +1,3 @@
+{% for ressource in ressources %}
+RUN wget -O {{ ressource.target }} {{ ressource.url }} --no-check-certificate
+{% endfor %}

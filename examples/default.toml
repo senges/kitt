@@ -38,16 +38,6 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 # Plugin order is respected during build procedure.
 [plugins]
 
-    # ===== BASH (builtin)=====#
-
-    # [plugins.bash]
-    # extras = []     # Extra line for .bashrc
-
-    # # Add bash alias (multiple)
-    # [[plugins.bash.alias]]
-    # name = ""
-    # cmd = ""
-
     # ===== ZSH =====#
 
     # [plugins.zsh]
@@ -67,6 +57,7 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # [[plugins.copy.files]]   # File / directory entry (multiple)
     # src = ""                 # Host path
     # dest = ""                # Container path
+    # chown = ""               # (Optional) change owner, set ${USER} for container user
 
     # ===== DOWNLOAD =====#
 
@@ -78,18 +69,8 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 
     # ===== GIT CLONE =====#
 
-    # [plugins.git]    # Download ressource from URL
+    # [plugins.git]    # Clone git repostory
     #
     # [[plugins.git.repos]]   # Ressource to download (multiple)
     # url = ""                # Repository URL
     # target = ""             # Target clone directory in container
-
-    # ===== TMUX =====#
-
-    # [plugins.tmux]
-    # config = []
-
-    # ===== GNU SCREEN =====#
-
-    # [plugins.screen]
-    # config = []
