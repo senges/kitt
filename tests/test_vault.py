@@ -34,16 +34,16 @@ def test_unciper_text():
 
 
 def test_cipher_vault():
-    ciphered = cipher_vault(password, vault)
+    ciphered = cipher_dict(password, vault)
     assert(isinstance(ciphered, str))
-    none = cipher_vault(password, 123)
+    none = cipher_dict(password, 123)
     assert(none is None)
 
 
 def test_unciper_vault():
-    unciphered = uncipher_vault(password, secret_vault)
+    unciphered = uncipher_dict(password, secret_vault)
     assert(unciphered == vault)
-    none = uncipher_vault(password, vault)
+    none = uncipher_dict(password, vault)
     assert(none is None)
 
 

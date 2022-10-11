@@ -24,30 +24,32 @@ def secure_prompt() -> str:
     """
     try:
         return getpass.getpass()
-    except Exception:
+    except getpass.GetPassWarning:
         return None
 
-
-def cipher_vault(password: str, vault: list) -> str:
+def cipher_dict(password: str, vault: dict) -> str:
     """Cipher kitt vault
 
     Args:
         password (str): password as encryption key
-        vault (list): list of secrets
+        vault (dict): secrets
 
     Returns:
-        str: encrypted vault as string
+        str: base64 encoded encrypted vault
     """
+
+    if not isinstance(vault, dict):
+        raise ValueError
+
     try:
-        if not isinstance(vault, list):
-            raise ValueError
         vault = json.dumps(vault)
-        return cipher_text(password, vault)
-    except Exception:
+    except TypeError:
         return None
 
+    return cipher_text(password, vault)
 
-def uncipher_vault(password: str, vault: str) -> list:
+
+def uncipher_dict(password: str, vault: str) -> dict:
     """Uncipher kitt vault
 
     Args:
@@ -55,15 +57,17 @@ def uncipher_vault(password: str, vault: str) -> list:
         vault (str): encrypted vault as string
 
     Returns:
-        list: kitt vault as secret list
+        dict: kitt vault as secret list
     """
+
     vault = uncipher_text(password, vault)
+
     try:
         vault = json.loads(vault)
-        if not isinstance(vault, list):
+        if not isinstance(vault, dict):
             raise ValueError
         return vault
-    except Exception:
+    except ValueError:
         return None
 
 
@@ -77,10 +81,11 @@ def cipher_text(password: str, data: str) -> str:
     Returns:
         str: encrypted data as string
     """
-    key = _forge_key(password)
+    
+    if not (key := _forge_key(password)):
+        raise ValueError
+    
     try:
-        if not key:
-            raise ValueError
         cipher = Fernet(key).encrypt(data.encode('utf-8'))
         return base64.b64encode(cipher).decode('utf-8')
     except Exception:

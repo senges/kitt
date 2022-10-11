@@ -2,7 +2,6 @@
 
 import os
 import grp
-import uuid
 import json
 import tempfile
 import subprocess
@@ -10,13 +9,11 @@ import subprocess
 from typing import Tuple
 from pwd import getpwnam
 
-from fs.tempfs import TempFS, errors as TempFSErrors
-
 from kitt import plugins
 from kitt.__version__ import __version__
 from kitt.config import ConfigUtils
 from kitt.images import DockerImageManager, Composer
-from kitt.crypto import b64d, uncipher_vault, secure_prompt
+from kitt.vault import create_vault, load_vault, VaultFS
 from kitt import logger
 from kitt.logger import (
     success,
@@ -45,7 +42,8 @@ class KittClient:
         if not self.image_manager.stat('kitt', name):
             panic(f'Image { name } not found. Use `pull` command first.')
 
-        env = []
+        envs = {}
+        volumes = {}
         groups = []
 
         user_uid = os.getuid()
@@ -72,8 +70,8 @@ class KittClient:
             except KeyError:
                 warning('Could not find host group "docker"')
 
-        volumes = config.get('bind_volumes', {})
-        for vol in list(volumes):
+        volumes = {**volumes, **config.get('bind_volumes', {})}
+        for vol in dict(volumes):
             if user_home and '$HOME' in vol:
                 host = vol.replace('$HOME', user_home)
                 volumes[host] = volumes.pop(vol)
@@ -82,10 +80,22 @@ class KittClient:
             host, bind, mode = unpack_volume(vol)
             volumes[host] = {'bind': bind, 'mode': mode}
 
+        vault_fs = None
+        while str_vault := config.get('vault'):
+            vault = load_vault(str_vault)
+            if not vault:
+                warning('Invalid password or corrupted vault')
+                break
+            envs = {**envs, **vault.get('envs', {})}
+            if files := vault.get('files'):
+                vault_fs = VaultFS()
+                volumes_fs = vault_fs.load(files)
+                volumes = {**volumes, **volumes_fs}
+
         # As container network is in host mode, will exploit Xorg
         # abstract socket instead of /tmp/.X11-unix socket
         if config.get('forward_x11'):
-            env.append('DISPLAY=%s' % os.environ.get('DISPLAY'))
+            envs['DISPLAY'] = os.environ.get('DISPLAY')
             # Is run as root, probably not in xhost auth list
             if user_uid == 0:
                 subprocess.call(
@@ -99,7 +109,7 @@ class KittClient:
             tag=name,
             hostname=hostname,
             volumes=volumes,
-            environment=env,
+            environment=envs,
             cap_add=['CAP_NET_RAW', 'CAP_IPC_LOCK'],
             extra_hosts={hostname: '127.0.0.1'},
             command=config.get('command', 'bash'),
@@ -107,13 +117,8 @@ class KittClient:
             user=f'{ user_uid }:{ user_gid }',
         )
 
-        # try:
-        #     bindfs.close()
-        # except AttributeError:
-        #     pass
-        # except TempFSErrors.OperationFailed:
-        #     warning('Could not properly remove local tempfs.')
-        #     warning('Sensible data might remain on disk.')
+        if vault_fs:
+            vault_fs.close()
 
     def build(self, name: str, config_file: str):
         """Build kitt image using provided config file
@@ -134,7 +139,7 @@ class KittClient:
             'tools': workspace.get('tools', []),
             'envs': workspace.get('envs', []),
             'image': workspace.get('image', 'ubuntu:22.04'),
-            'plugins': [ plugins.compose(n, c) for n, c in config.get('plugins', {}).items() ],
+            'plugins': [plugins.compose(n, c) for n, c in config.get('plugins', {}).items()],
         }
 
         template = self.image_composer.compose(context)
@@ -155,6 +160,9 @@ class KittClient:
 
             volumes[host] = {'bind': bind, 'mode': mode}
 
+        secrets = config.get('secrets', {})
+        str_vault = create_vault(secrets) if secrets else ''
+
         bind_config = {
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
@@ -163,12 +171,15 @@ class KittClient:
             'hostname':      workspace.get('hostname'),
             'command':       workspace.get('default_shell'),
             'user':          workspace.get('user'),
+            'vault':         str_vault,
             'version':       'v' + __version__,
         }
 
         if not self.image_manager.experimental:
-            warning('Docker is not in experimental mode, which is required to squash layers.')
-            warning('To significantly reduce image size, please consider enabling it.')
+            warning(
+                'Docker is not in experimental mode, which is required to squash layers.')
+            warning(
+                'To significantly reduce image size, please consider enabling it.')
 
         with waiter('Building image'):
             labels = {'kitt-config': json.dumps(bind_config)}
@@ -279,7 +290,12 @@ class KittClient:
         # !! Image dockerfile better generation
         with waiter(f'Building patched image "{ name }-patch"'):
             self.image_manager.build(
-                'kitt', f'FROM kitt:{ name }', f'{ name }-patch', labels={'kitt-config': config})
+                name='kitt',
+                template=f'FROM kitt:{ name }',
+                tag=f'{ name }-patch',
+                labels={'kitt-config': config},
+                squash=False,
+            )
 
         os.unlink(fname)
         success('Patch success !')
@@ -305,28 +321,6 @@ class KittClient:
         except json.decoder.JSONDecodeError:
             return None
 
-    def _vault(self, name: str) -> list:
-        """Kitt image vault
-
-        Args:
-            name (str): kitt image
-
-        Returns:
-            dict: JSON loaded config
-        """
-
-        labels = self.image_manager.labels('kitt', name)
-        if 'kitt-vault' not in labels:
-            return None
-
-        vault = labels.get('kitt-vault')
-        info('Opening Kitt Vault')
-        password = secure_prompt()
-
-        if not (vault := uncipher_vault(password, vault)):
-            warning('Invalid password or corrupted vault')
-
-        return vault
 
 # Where should I put you ??
 def unpack_volume(volume: str) -> Tuple[str, str, str]:
