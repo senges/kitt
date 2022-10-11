@@ -83,12 +83,12 @@ def _refresh():
 
 @main.command('build')
 @click.help_option('-h', '--help')
-@click.option('-f', '--file', is_flag=False, multiple=False, help='Input kitt file')
+@click.argument('config', type=click.STRING)
 @click.argument('name', type=click.STRING)
-def _build(name, file):
+def _build(config, name):
     """Build image from source config file"""
 
-    client.build(name, file)
+    client.build(name, config)
 
 
 @main.command('pull')
