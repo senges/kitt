@@ -20,6 +20,18 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 # bind = ""   # Bin inside container
 # mode = ""   # Mode (default is 'rw')
 
+# Secrets are static encrypted files or exported variables
+# stored inside the container image.
+# Be very careful with secrets as they might becore
+# public if your password leaks or isn't strong enough.
+# [secrets]
+# [[secrets.files]]   # File entry (multiple)
+# src = ""                    # Host path
+# dest = ""                   # Container path
+# [[secrets.envs]]   # Env variable (multiple)
+# name = ""                   # Variable name
+# value = ""                  # Secret value
+
 # Plugins are optional additional
 # features for container customisations.
 # See plugins.py for further informations
@@ -81,10 +93,3 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 
     # [plugins.screen]
     # config = []
-
-    # ===== SECRETS =====#
-
-    # [plugins.secrets]
-    # [[plugins.secrets.files]]   # File entry (multiple)
-    # src = ""                    # Host path
-    # dest = ""                   # Container path
