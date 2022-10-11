@@ -243,7 +243,7 @@ class DockerImageManager(ImageManager):
         map(lambda x: x.reload(), images)
 
     @docker_error_handler
-    def build(self, name: str, template: str, tag: str = 'latest', **kwargs):
+    def build(self, name: str, template: str, tag: str = 'latest', squash = True, **kwargs):
         dockerfile = io.BytesIO(template.encode('utf-8'))
         fname = self._tag(name, tag)
         self.client.images.build(
@@ -251,7 +251,7 @@ class DockerImageManager(ImageManager):
             fileobj=dockerfile,
             rm=True,
             nocache=True,
-            squash=self.experimental,
+            squash=squash and self.experimental,
             **kwargs
         )
 
@@ -277,9 +277,7 @@ class DockerImageManager(ImageManager):
 
     @docker_error_handler
     def stat(self, name: str, tag: str = 'latest') -> bool:
-        if self._get(name, tag):
-            return True
-        return False
+        return self._get(name, tag)
 
     @docker_error_handler
     def labels(self, name: str, tag: str = 'latest') -> dict:
