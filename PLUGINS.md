@@ -5,7 +5,9 @@ configuration file.
 
 If you see `(multiple)` marker, it means plugin expect a [toml nested array of table](https://toml.io/en/v1.0.0#array-of-tables) (could be 0 elements). JSON equivalents would be :
 
+<details>
 ```toml
+
 [plugins.foo]
 x = 42
 [[plugins.foo.bar]] # Is (multiple)
@@ -49,20 +51,7 @@ x = 42
     }
 }
 ```
-
-## BASH (builtin)
-
-Bash is already installed by default in kitt base image, but you can customize it.
-
-```toml
-[plugins.bash]
-extras = []     # Extra lines for .bashrc
-
-# Add bash alias (multiple)
-[[plugins.bash.alias]]
-name = ""
-cmd = ""
-```
+</details>
 
 ## ZSH
 
@@ -84,9 +73,10 @@ cmd = ""
 
 Copy host local files inside container. 
 
-**DO NOT** put any sensible file (private keys, tokens, passwords) inside your container if you aim tu push 
-the image to a container registry.  
-Use [secrets](#SECRETS-(Not-yet-implemented)) plugin instead.
+> **warning** 
+> Do not use this plugin to put any sensible file (private keys, tokens, passwords) inside your image,
+> especially if you aim tu push it to a container registry.  
+> Use `[secrets]` instead.
 
 ```toml
 [plugins.copy]    # Copy local file / directory
@@ -98,7 +88,7 @@ dest = ""                # Container path
 
 ## DOWNLOAD 
 
-Download ressource from any URL. Underlying code will use builtin `wget` to fetch ressource(s).
+Download ressource from any URL. Underlying code will use `wget` to fetch ressource(s).
 
 ```toml
 [plugins.download]    # Download ressource from URL
@@ -120,35 +110,21 @@ url = ""                # Repository URL
 target = ""             # Target clone directory in container
 ```
 
-## TMUX
+## Custom plugins
 
-Configure Tmux terminal splitter.
+To add your very own plugin, create a jinja file and add it inside `kitt/static/plugins`.
+Then, you can use it directly inside your config file without any code change.
+
+For example, if you wish to implement a `tmux` plugin, create a `tmux.j2` file and set the variables
+inside your config file if necessary.
+
+```jinja
+RUN echo {{ data }} >> ${HOME}/.tmux.conf
+```
 
 ```toml
 [plugins.tmux]
-config = []
+data = "..."
 ```
 
-## GNU SCREEN 
-
-Configure GNU Screen terminal splitter.
-
-```toml
-[plugins.screen]
-config = []
-```
-
-## SECRETS
-
-Add secrets in your container image.
-
-> **Warning**  
-> Secret plugin loads the whole file in RAM.  
-> It's recommanded to use only small-medium file size.
-
-```toml
-[plugins.secrets]
-[[plugins.secrets.files]]   # File entry (multiple)
-src = ""                    # Host path
-dest = ""                   # Container path
-```
+Only the first line is mandatory to include it in the build process.

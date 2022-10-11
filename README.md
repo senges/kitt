@@ -2,7 +2,7 @@
 
 Kitt is a container based portable shell environment.
 
-Spawn your shell, with your tools, and your config, anywhere.
+Build, push and distribute your shell, with your tools, and your config, anywhere.
 
 ## Installation
 
@@ -16,18 +16,13 @@ Spawn your shell, with your tools, and your config, anywhere.
 
 Kitt is based ont python3 and [Docker](https://docs.docker.com/get-docker).
 
-```
-➜  apt install -y python3 pip3
-➜  curl -sSL https://get.docker.io | bash
-```
-
 ## How to use Kitt
 
 Fill a configuration file (see [examples folder](./examples)) either in `toml` or `json` format. 
 Feed it to Kitt and let the magic happend !
 
 ```
-➜  kitt build -f examples/devops.conf devops
+➜  kitt build examples/devops.conf devops
 ✓ Build success !
 
 ➜  kitt run devops
@@ -53,6 +48,8 @@ Few commands workflow examples are available in [examples folder](./examples/com
 
 Usage: kitt [OPTIONS] COMMAND [ARGS]...
 
+  main command group
+
 Options:
   -h, --help   Show this message and exit.
   -d, --debug  Debug mode
@@ -64,7 +61,7 @@ Commands:
   patch    Patch image runtime metadata
   prune    Prune local images
   pull     Pull image and exit
-  push     Push image to registry
+  push     Push kitt image to registry
   refresh  Pull latest version of local images
   remove   Remove local image
   run      Run kitt shell
@@ -80,7 +77,8 @@ docker_in_docker = false    # Share docker socket
 forward_x11 = false         # Configure x11 forward
 
 [workspace]
-tools = []              # Catalog tools
+image = "ubuntu:22.04"  # OCI System Image
+tools = []              # Nix tools
 user = "user"           # Username inside container
 hostname = "kitt"       # Container hostname
 default_shell = "bash"  # One of bash, zsh, sh, dash
@@ -91,11 +89,31 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 
 # [[workspace.volumes]]   # Container bind volumes (multiple)
 # host = ""   # Local directory
-# bind = ""   # Bind inside container
+# bind = ""   # Bin inside container
 # mode = ""   # Mode (default is 'rw')
+
+# [secrets]
+# [[secrets.files]]   # File entry (multiple)
+# src = ""                    # Host path
+# dest = ""                   # Container path
+# [[secrets.envs]]   # Env variable (multiple)
+# name = ""                   # Variable name
+# value = ""                  # Secret value
 ```
 
-For more details about **Catalog** tool installer, see [tools installation](#Tools-installation) section.
+For more details about **Nix tools**, see [tools installation](#Tools-installation) section.
+
+### Secrets
+
+Kitt is able to embed password encrypted secrets (files and env vars) inside an image.
+
+A password prompt will be shown at container runtime to decrypt and restore the secrets :
+* Env vars are loaded inside the container
+* Files are restored insed a tempFS destoyed at container exit
+
+> **Warning**  
+> Kitt vault uses SHA256(password) as AES encryption key.
+> Use with caution, weak password could lead to sensitive information leak.
 
 ### Plugins
 
@@ -103,18 +121,16 @@ Kitt offers multiple _optional_ plugins to improve environment customization.
 
 | Plugin     | Description                           |
 |------------|---------------------------------------|
-| _bash_     | configure bash                        |
 | _zsh_      | install and setup Zsh (oh-my-zsh)     |
 | _copy_     | copy local files inside container     |
 | _download_ | download ressources inside container  |
 | _git_      | clone git repository inside container |
-| _tmux_     | configure Tmux                        |
-| _screen_   | configure GNU Screen                  |
-| _sercrets_ | add secrets                           |
 
 See [PLUGINS.md](./PLUGINS.md) for configuration details.
 
-See [plugins.py](./kitt/plugins.py) to implement your own plugin.
+**Need another plugin ?**
+
+Add jinja formated plugin inside `kitt/static/plugins` folder and use it in your config file under the same name.
 
 ## How does it work ?
 
@@ -124,18 +140,10 @@ At runtime, Kitt will create a container from this image, spawn a shell inside a
 
 ### Tools installation
 
-For the tool installation part, Kitt relies on [Catalog](https://github.com/senges/catalog). 
-It does provide an uniform way of installing tools inside containers, and can be extended if necessary.
+For the tool installation part, Kitt relies on the huge 80k+ packages [NixOS Store](https://search.nixos.org). 
+It does provide an uniform OS agnostic way of installing tools inside containers, and can be extended if necessary.
 
-Catalog is also available inside the container :
-
-```
-➜  kitt run devops
-root@kitt:~# catalog htop pulumi
-
-[+] Installing htop
-...
-```
+Thanks to Nix, you can effortlessly change your base image OS, anytime.
 
 ### Containerization
 
