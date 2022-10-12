@@ -91,6 +91,7 @@ class KittClient:
                 vault_fs = VaultFS()
                 volumes_fs = vault_fs.load(files)
                 volumes = {**volumes, **volumes_fs}
+            break
 
         # As container network is in host mode, will exploit Xorg
         # abstract socket instead of /tmp/.X11-unix socket
@@ -162,7 +163,7 @@ class KittClient:
 
         secrets = config.get('secrets', {})
         str_vault = create_vault(secrets) if secrets else ''
-
+        
         bind_config = {
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
