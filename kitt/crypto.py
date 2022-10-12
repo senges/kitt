@@ -61,13 +61,13 @@ def uncipher_dict(password: str, vault: str) -> dict:
     """
 
     vault = uncipher_text(password, vault)
-
+    
     try:
         vault = json.loads(vault)
         if not isinstance(vault, dict):
             raise ValueError
         return vault
-    except ValueError:
+    except (ValueError, TypeError):
         return None
 
 

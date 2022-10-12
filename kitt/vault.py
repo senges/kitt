@@ -24,7 +24,9 @@ class VaultFS:
         Returns:
             dict: file mapping list
         """
-        volumes = []
+
+        volumes = {}
+
         for file in files:
             fname = str(uuid.uuid4())
             fpath = os.path.join(self.fs_root, fname)
@@ -33,10 +35,10 @@ class VaultFS:
                 fout.write(b64d(file['file']))
 
             volumes[fpath] = {
-                'bind': file['location'], 
-                'mode': 'rw'
+                'bind': file['location'],
+                'mode': 'rw',
             }
-
+            
         return volumes
 
     def close(self):
@@ -50,21 +52,21 @@ class VaultFS:
             warning('Could not properly remove local tempfs.')
             warning('Sensible data might remain on disk.')
 
-def create_vault(vault: dict) -> str:
+def create_vault(config: dict) -> str:
     """Create base64 encoded encrypted vault to attach
     """
 
     info('Remember secret strengh is proportional to password strengh.')
     info('Most of the time, a strong password is a long password.')
-    
+
     password = secure_prompt()
 
     vault = {
         'files': [],
-        'envs': [],
+        'envs': {},
     }
 
-    for file in vault.get('files', []):
+    for file in config.get('files', []):
         src, dest = file['src'], file['dest']
         with open(src, 'rb') as raw_file:
             raw = raw_file.read()
@@ -74,10 +76,9 @@ def create_vault(vault: dict) -> str:
             'file': raw
         })
 
-    for env in vault.get('envs', []):
-        vault['envs'].append({
-            env.name : env.value,
-        })
+    for env in config.get('envs', []):
+        name, value = env['name'], env['value']
+        vault['envs'][name] = value
 
     return cipher_dict(password, vault)
 
