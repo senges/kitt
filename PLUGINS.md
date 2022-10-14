@@ -63,8 +63,8 @@ theme = "afowler"
 plugins = []    # Plugins name or link
 extras = []     # Extra line for .zshrc
 
-# Add zsh alias (multiple)
-[[plugins.zsh.alias]]
+# Add zsh aliases (multiple)
+[[plugins.zsh.aliases]]
 name = ""
 cmd = ""
 ```

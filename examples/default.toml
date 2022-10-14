@@ -45,8 +45,8 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # plugins = []    # Plugins name or link
     # extras = []     # Extra line for .zshrc
 
-    # # Add zsh alias (multiple)
-    # [[plugins.zsh.alias]]
+    # # Add zsh aliases (multiple)
+    # [[plugins.zsh.aliases]]
     # name = ""
     # cmd = ""
 
