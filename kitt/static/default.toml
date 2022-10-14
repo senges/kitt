@@ -18,4 +18,5 @@ user = "user"           # Username inside container
 hostname = "kitt"       # Container hostname
 default_shell = "bash"  # One of bash, zsh, sh, dash
 
+[secrets]
 [plugins]
