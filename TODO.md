@@ -28,11 +28,13 @@
 - [ ] Waiter on prune
 - [ ] Manually pull nixos and alpine images, add waiter and done status on that step
 - [ ] Auto handle plugins requirements
+- [ ] sudo might be : su - root -c '...'
 
 ## Mid-Long term
 
 - [x] Kitt inside kitt ? (=> added to catalog)
 - [ ] Attach other TTY to running kitt container
+- [ ] CLI completion
 - [x] Catalog custom input file not supported yet => fixed by Nix
 - [ ] Display building logs (see Image.build second argument as JSON stream)
 - [ ] Add sound (see [docker-pulseaudio-example](https://github.com/TheBiggerGuy/docker-pulseaudio-example))
