@@ -111,7 +111,7 @@ class KittClient:
             hostname=hostname,
             volumes=volumes,
             environment=envs,
-            cap_add=['CAP_NET_RAW', 'CAP_IPC_LOCK'],
+            cap_add=['CAP_NET_RAW', 'CAP_NET_ADMIN', 'CAP_IPC_LOCK'],
             extra_hosts={hostname: '127.0.0.1'},
             command=config.get('command', 'bash'),
             group_add=groups,
