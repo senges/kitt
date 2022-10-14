@@ -2,7 +2,7 @@
 ## Build and push
 
 ```
-➜  kitt --debug build -f /tmp/myshell.toml myshell
+➜  kitt --debug build /tmp/myshell.toml myshell
 ✓ Build success !
 
 ➜  kitt list

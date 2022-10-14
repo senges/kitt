@@ -1,0 +1,11 @@
+# Install BurpSuite GUI app
+# It is a great POC as it proves kitt's ability to handle
+# properly container networking, proxy networking, and GUI forwarding.
+
+[options]
+forward_x11 = true
+
+[workspace]
+tools = [
+    "burpsuite"
+]

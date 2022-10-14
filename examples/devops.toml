@@ -7,28 +7,28 @@ user = "charles"
 hostname = "devops"
 default_shell = "zsh"
 tools = [
-    "ansible", 
-    "aws-cli",
-    "dive", 
-    "docker", 
-    "docker-compose", 
-    "gcc", 
-    "git", 
-    "golang", 
-    "helm", 
-    "htop", 
-    "knative-client", 
-    "kubectl", 
-    "kubectx", 
-    "kubens", 
-    "make", 
-    "mysql-client", 
-    "netcat", 
-    "scw", 
-    "terraform", 
-    "thefuck", 
-    "vault", 
-    "vim", 
+    "ansible",
+    "awscli2",
+    "dig",
+    "dive",
+    "docker",
+    "git",
+    "iproute2",
+    "iputils",
+    "kn",
+    "kubecolor",
+    "kubectl",
+    "kubectx",
+    "kubernetes-helm",
+    "mysql-shell",
+    "netcat",
+    "python310",
+    "python310Packages.pip",
+    "scaleway-cli",
+    "terraform",
+    "thefuck",
+    "vault",
+    "vim",
     "xclip",
 ]
 
@@ -40,6 +40,16 @@ mode = "rw"
 [[workspace.volumes]]
 host = "$HOME"
 bind = "/home/charles/host"
+mode = "ro"
+
+[[workspace.volumes]]
+host = "$HOME/.ssh"
+bind = "/home/charles/.ssh"
+mode = "ro"
+
+[[workspace.volumes]]
+host = "$HOME/.kube"
+bind = "/home/charles/.kube"
 mode = "ro"
 
 [[workspace.envs]]
@@ -70,10 +80,8 @@ value = "ls"
         "aliases", 
         "ansible", 
         "aws", 
-        "colored-man-pages", 
         "copybuffer", 
         "docker", 
-        "docker-compose", 
         "git", 
         "helm", 
         "kn", 
@@ -90,61 +98,64 @@ value = "ls"
     ]
     extras = [
         "eval $(thefuck --alias f)",
-        "export PATH=\"$PATH:$(go env GOPATH)/bin\""
     ]
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "reload"
     cmd = "source ~/.zshrc"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "h"
     cmd = "history"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "hs"
     cmd = "history | grep -i"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "ff"
     cmd = "find . -type f -name"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "x"
     cmd = "xclip -sel clip"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "drun"
     cmd = "docker run -it --rm"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
+    name = "kubectl"
+    cmd = "kubecolor"
+
+    [[plugins.zsh.aliases]]
     name = "k"
     cmd = "kubectl"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "kns"
     cmd = "kubens"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "kctx"
     cmd = "kubectx"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "ll"
     cmd = "ls -lh"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "lla"
     cmd = "ls -lAh"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "df"
     cmd = "df -h"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "free"
     cmd = "free -m"
 
-    [[plugins.zsh.alias]]
+    [[plugins.zsh.aliases]]
     name = "duh"
     cmd = "du -h -d 1"
