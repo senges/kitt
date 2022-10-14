@@ -1,0 +1,3 @@
+{% if packages %}
+RUN su - ${USER} -c 'pip install --user setuptools {% for package in packages %}{{ package }} {% endfor %}'
+{% endif %}

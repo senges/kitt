@@ -119,12 +119,13 @@ A password prompt will be shown at container runtime to decrypt and restore the 
 
 Kitt offers multiple _optional_ plugins to improve environment customization.
 
-| Plugin     | Description                           |
-|------------|---------------------------------------|
-| _zsh_      | install and setup Zsh (oh-my-zsh)     |
-| _copy_     | copy local files inside container     |
-| _download_ | download ressources inside container  |
-| _git_      | clone git repository inside container |
+| Plugin     | Description                           | Requires |
+|------------|---------------------------------------|----------|
+| _zsh_      | install and setup Zsh (oh-my-zsh)     |          |
+| _copy_     | copy local files inside container     |          |
+| _download_ | download ressources inside container  | wget     |
+| _git_      | clone git repository inside container | git      |
+| _pip_      | install pip package                   | pip      |
 
 See [PLUGINS.md](./PLUGINS.md) for configuration details.
 

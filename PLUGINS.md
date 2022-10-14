@@ -79,7 +79,7 @@ Copy host local files inside container.
 > Use `[secrets]` instead.
 
 ```toml
-[plugins.copy]    # Copy local file / directory
+[plugins.copy]
 
 [[plugins.copy.files]]   # File / directory entry (multiple)
 src = ""                 # Host path
@@ -91,7 +91,7 @@ dest = ""                # Container path
 Download ressource from any URL. Underlying code will use `wget` to fetch ressource(s).
 
 ```toml
-[plugins.download]    # Download ressource from URL
+[plugins.download]
 
 [[plugins.download.ressources]]   # Ressource to download (multiple)
 url = ""                          # Ressource public URL
@@ -103,11 +103,20 @@ target = ""                       # Target container path for download
 Clone a git repository inside your conainer.
 
 ```toml
-[plugins.git]    # Download ressource from URL
+[plugins.git]
 
 [[plugins.git.repos]]   # Ressource to download (multiple)
 url = ""                # Repository URL
 target = ""             # Target clone directory in container
+```
+
+## PIP INSTALL
+
+Install pip packages.
+
+```toml
+[plugins.pip]
+packages = []   # String array of packages
 ```
 
 ## Custom plugins

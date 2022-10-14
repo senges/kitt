@@ -2,6 +2,7 @@ FROM nixos/nix:2.11.1 as nixbuilder
 
 RUN mkdir -p /output/store
 RUN echo '#!/bin/sh' > /add \
+    && echo 'export NIXPKGS_ALLOW_UNFREE=1' >> /add \
     && echo 'nix-channel --update' >> /add \
     && echo 'echo -n $@ | xargs -d " " -I {} echo -n "nixpkgs.{} " | xargs nix-env -p /output/profile -iA' >> /add \
     && chmod +x /add
@@ -33,6 +34,8 @@ ARG HOME=/home/${USER}
 
 ENV USER=${USER}
 ENV LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
+ENV PATH="${PATH}:${HOME}/.local/bin/"
+
 {% for env in envs %}
 ENV {{ env.name }}="{{ env.value }}"
 {%- endfor %}
