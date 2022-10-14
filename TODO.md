@@ -13,6 +13,7 @@
 - [x] Add secret managment
 - [x] Handle local user not in docker group (run as other user ?)
 - [x] Make sure local catalog image is updated
+- [ ] Execute `which` for each tool to make sure it's not OS embeded (ex: curl for most distros)
 - [ ] Add layer caching for prebuild
 - [ ] Better logging
 - [x] Should we properly handle runtimes ? (go, python, ..) => Probably not as exploiting Nix dependencies ?
@@ -24,6 +25,9 @@
 - [ ] Add custom part for Dockerfile
 - [ ] package location instead of __file__ : http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 - [ ] Refresh only one image
+- [ ] Waiter on prune
+- [ ] Manually pull nixos and alpine images, add waiter and done status on that step
+- [ ] Auto handle plugins requirements
 
 ## Mid-Long term
 
