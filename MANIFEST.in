@@ -1,1 +1,1 @@
-recursive-include kitt/static/*
+recursive-include kitt/static *
