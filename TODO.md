@@ -29,6 +29,7 @@
 - [ ] Manually pull nixos and alpine images, add waiter and done status on that step
 - [ ] Auto handle plugins requirements
 - [ ] sudo might be : su - root -c '...'
+- [ ] When pulling image, untag pulled image to keep `kitt remove` working
 
 ## Mid-Long term
 
