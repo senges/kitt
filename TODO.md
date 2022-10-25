@@ -3,7 +3,15 @@
 
 - [x] Path is not properly exported for root, cannot find catalog bin folder
 - [x] Docker group GID do not match host group GID
-- [ ] X11 forwarding mostly works, but xeyes is super laggy
+- [x] X11 forwarding mostly works, but xeyes is super laggy
+- [ ] pip version check make it unusable (temp fix is : `--disable-pip-version-check`)
+```
+FileNotFoundError: [Errno 2] No such file or directory: '/nix/store/...-python3-3.10.7/bin/pip'
+Call stack:
+    [...]
+Message: '[present-rich] %s'
+Arguments: (UpgradePrompt(old='22.2.2', new='22.3'),)    
+```
 
 ## Short term
 
@@ -30,6 +38,8 @@
 - [ ] Auto handle plugins requirements
 - [ ] sudo might be : su - root -c '...'
 - [ ] When pulling image, untag pulled image to keep `kitt remove` working
+- [ ] download plugins : create target folder if not exist
+- [ ] add pipenv so it works with host vscode
 
 ## Mid-Long term
 
@@ -39,3 +49,5 @@
 - [x] Catalog custom input file not supported yet => fixed by Nix
 - [ ] Display building logs (see Image.build second argument as JSON stream)
 - [ ] Add sound (see [docker-pulseaudio-example](https://github.com/TheBiggerGuy/docker-pulseaudio-example))
+- [ ] Lint tools list to see if they exist on NisOS Search DB
+- [ ] Cache any Nix layer as Nixery does
