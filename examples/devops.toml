@@ -3,8 +3,8 @@ forward_x11 = true
 docker_in_docker = true
 
 [workspace]
-user = "charles"
-hostname = "devops"
+user = "dev"
+hostname = "ops"
 default_shell = "zsh"
 tools = [
     "ansible",
@@ -12,16 +12,19 @@ tools = [
     "dig",
     "dive",
     "docker",
+    "fluxctl",
     "git",
     "iproute2",
     "iputils",
     "kn",
+    "krew",
     "kubecolor",
     "kubectl",
     "kubectx",
     "kubernetes-helm",
     "mysql-shell",
     "netcat",
+    "openssh",
     "python310",
     "python310Packages.pip",
     "scaleway-cli",
