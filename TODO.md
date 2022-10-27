@@ -4,7 +4,19 @@
 - [x] Path is not properly exported for root, cannot find catalog bin folder
 - [x] Docker group GID do not match host group GID
 - [x] X11 forwarding mostly works, but xeyes is super laggy
-- [ ] pip version check make it unusable (temp fix is : `--disable-pip-version-check`)
+- [ ] Bug with duplicate `/home`
+```
+» id
+uid=1000(user) gid=1000(user) groups=1000(user)
+
+» tree -L 2 /home
+/home
+├── basique
+└── charles
+    └── host
+```
+
+- [ ] pip version check make it unusable (temp fix is : `--disable-pip-version-check`) ([NixOS open issue](https://github.com/NixOS/nixpkgs/issues/198059))
 ```
 FileNotFoundError: [Errno 2] No such file or directory: '/nix/store/...-python3-3.10.7/bin/pip'
 Call stack:

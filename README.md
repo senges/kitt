@@ -14,7 +14,7 @@ Build, push and distribute your shell, with your tools, and your config, anywher
 
 ## Dependencies
 
-Kitt is based ont python3 and [Docker](https://docs.docker.com/get-docker).
+Kitt is based on python3 and [Docker](https://docs.docker.com/get-docker).
 
 ## How to use Kitt
 
