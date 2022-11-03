@@ -163,7 +163,7 @@ class KittClient:
 
         secrets = config.get('secrets', {})
         str_vault = create_vault(secrets) if secrets else ''
-        
+
         bind_config = {
             'entrypoint':    "fixuid -q",
             'bind_volumes':  volumes,
@@ -207,12 +207,14 @@ class KittClient:
     def prune(self):
         """Prune force all kitt images
         """
-        self.image_manager.prune('kitt')
+        with waiter('Removing local images'):
+            self.image_manager.prune('kitt')
 
     def refresh(self):
         """Pull latest version of local kitt images
         """
-        self.image_manager.refresh('kitt')
+        with waiter('Updating local images'):
+            self.image_manager.refresh('kitt')
 
     def pull(self, repository: str, tag: str):
         """Pull remote kitt image from repository
