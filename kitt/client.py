@@ -231,6 +231,8 @@ class KittClient:
         with waiter(f'Pulling image { tag } from registry'):
             self.image_manager.pull(repository, tag, 'kitt')
 
+        self.image_manager.remove(repository, tag)
+
         labels = self.image_manager.labels('kitt', tag)
         if 'kitt-config' not in labels:
             warning('Image does not look like a kitt image')
