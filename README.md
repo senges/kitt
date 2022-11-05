@@ -4,17 +4,19 @@ Kitt is a container based portable shell environment.
 
 Build, push and distribute your shell, with your tools, and your config, anywhere.
 
+## Demo
+
+![](./docs/static/example01.png)
+
 ## Installation
+
+First, make sure you have python3 and Docker installed.
 
 ```
 ➜  pip install kitt-shell
 ```
 
 .. or just run `kitt.py` from sources.
-
-## Dependencies
-
-Kitt is based on python3 and [Docker](https://docs.docker.com/get-docker).
 
 ## How to use Kitt
 
