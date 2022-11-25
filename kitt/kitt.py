@@ -129,5 +129,15 @@ def _patch(image):
     client.patch(image)
 
 
+@main.command('completion')
+@click.help_option('-h', '--help')
+@click.argument('shell', type=click.Choice(['bash', 'zsh', 'fish']))
+def _completion(shell):
+    """Shell auto-completion"""
+    
+    print(f'# Kitt {shell} auto-completion')
+    print(f'eval "$(_KITT_COMPLETE={shell}_source kitt)"')
+
+
 if __name__ == '__main__':
     main(False)
