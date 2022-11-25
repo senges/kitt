@@ -134,7 +134,7 @@ def _patch(image):
 @click.argument('shell', type=click.Choice(['bash', 'zsh', 'fish']))
 def _completion(shell):
     """Shell auto-completion"""
-    
+
     print(f'# Kitt {shell} auto-completion')
     print(f'eval "$(_KITT_COMPLETE={shell}_source kitt)"')
 

@@ -35,6 +35,9 @@ ARG HOME=/home/${USER}
 ENV USER=${USER}
 ENV LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 ENV PATH="${PATH}:${HOME}/.local/bin/"
+{% if paths %}
+ENV PATH="${PATH}:{{ paths | join(':') }}"
+{% endif %}
 
 {% for env in envs %}
 ENV {{ env.name }}="{{ env.value }}"

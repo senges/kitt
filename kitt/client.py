@@ -139,6 +139,7 @@ class KittClient:
             'shell': workspace.get('default_shell', 'bash'),
             'tools': workspace.get('tools', []),
             'envs': workspace.get('envs', []),
+            'paths': workspace.get('paths', []),
             'image': workspace.get('image', 'ubuntu:22.04'),
             'plugins': [plugins.compose(n, c) for n, c in config.get('plugins', {}).items()],
         }

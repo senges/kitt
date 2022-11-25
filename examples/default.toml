@@ -10,6 +10,7 @@ tools = []              # Nix tools
 user = "user"           # Username inside container
 hostname = "kitt"       # Container hostname
 default_shell = "bash"  # One of bash, zsh, sh, dash
+# paths = []              # Additional folders in $PATH
 
 # [[workspace.envs]]  # Container exported ENV (multiple)
 # name = ""
