@@ -129,7 +129,7 @@ Kitt offers multiple _optional_ plugins to improve environment customization.
 |------------|---------------------------------------|----------|
 | _zsh_      | install and setup Zsh (oh-my-zsh)     |          |
 | _copy_     | copy local files inside container     |          |
-| _download_ | download ressources inside container  | wget     |
+| _download_ | download ressources inside container  | curl     |
 | _git_      | clone git repository inside container | git      |
 | _pip_      | install pip package                   | pip      |
 
