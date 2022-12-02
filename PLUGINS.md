@@ -116,7 +116,8 @@ Install pip packages.
 
 ```toml
 [plugins.pip]
-packages = []   # String array of packages
+packages = []       # String array of packages
+extra_indexes = []  # String array of extra index url
 ```
 
 ## Custom plugins

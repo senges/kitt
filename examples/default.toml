@@ -39,7 +39,13 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 # Plugin order is respected during build procedure.
 [plugins]
 
-    # ===== ZSH =====#
+    # ==== PIP ==== #
+
+    # [plugins.pip]
+    # packages = []
+    # extra_indexes = []
+
+    # ===== ZSH ===== #
 
     # [plugins.zsh]
     # theme = "afowler"
@@ -51,7 +57,7 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # name = ""
     # cmd = ""
 
-    # ===== COPY =====#
+    # ===== COPY ===== #
 
     # [plugins.copy]    # Copy local file / directory
     #
@@ -60,7 +66,7 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # dest = ""                # Container path
     # chown = ""               # (Optional) change owner, set ${USER} for container user
 
-    # ===== DOWNLOAD =====#
+    # ===== DOWNLOAD ===== #
 
     # [plugins.download]    # Download ressource from URL
     #
@@ -68,7 +74,7 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
     # url = ""                          # Ressource public URL
     # target = ""                       # Target container path for download
 
-    # ===== GIT CLONE =====#
+    # ===== GIT CLONE ===== #
 
     # [plugins.git]    # Clone git repostory
     #
