@@ -8,6 +8,7 @@ import jinja2
 import docker
 import dockerpty
 
+from docker.models.images import Image
 
 class Composer:
     """Image text file composer"""
@@ -198,7 +199,7 @@ class DockerImageManager(ImageManager):
         return self.client.images.get(fname)
 
     @docker_error_handler
-    def _get_all(self, repository: str = None) -> [docker.models.images.Image]:
+    def _get_all(self, repository: str = None) -> list[Image]:
         return self.client.images.list(name=repository)
 
     @docker_error_handler
@@ -244,11 +245,16 @@ class DockerImageManager(ImageManager):
 
     @docker_error_handler
     def build(self, name: str, template: str, tag: str = 'latest', squash = True, **kwargs):
-        dockerfile = io.BytesIO(template.encode('utf-8'))
+        # Monkey-patch to address custom build context situation with fileobj
+        # https://github.com/docker/docker-py/issues/2105#issuecomment-613685891
+        import docker.api.build
+        docker.api.build.process_dockerfile = lambda dockerfile, path: ('Dockerfile', dockerfile)
+
         fname = self._tag(name, tag)
         self.client.images.build(
+            path='.',
+            dockerfile=template,
             tag=fname,
-            fileobj=dockerfile,
             rm=True,
             nocache=True,
             squash=squash and self.experimental,
