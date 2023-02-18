@@ -6,6 +6,7 @@ configuration file.
 If you see `(multiple)` marker, it means plugin expect a [toml nested array of table](https://toml.io/en/v1.0.0#array-of-tables) (could be 0 elements). JSON equivalents would be :
 
 <details>
+
 ```toml
 
 [plugins.foo]
@@ -51,6 +52,37 @@ x = 42
     }
 }
 ```
+
+</details>
+
+## SH
+
+This is the most basic plugin **but also quite an anti-pattern**.
+
+You should only invoke sh plugin for edge cases, when no other plugin is fitting your needs.
+
+```toml
+[plugins.sh]
+cmd = []
+```
+
+<details>
+
+```toml
+[plugins.sh]
+cmd = [
+    "ln -s $(find / -name *.pc | head -n 1) /etc/pkg-build",
+    "ssh-keygen -t rsa -b 2048 -f /usr/share/key -N $(echo $PASS | md5sum | cut -d ' ' -f 1)",
+]
+```
+
+Is the Dockerfile equivalent of :
+
+```dockerfile
+RUN ln -s $(find / -name *.pc | head -n 1) /etc/pkg-build
+RUN ssh-keygen -t rsa -b 2048 -f /usr/share/key -N $(echo $PASS | md5sum | cut -d ' ' -f 1)
+```
+
 </details>
 
 ## ZSH

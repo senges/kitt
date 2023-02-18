@@ -39,6 +39,11 @@ default_shell = "bash"  # One of bash, zsh, sh, dash
 # Plugin order is respected during build procedure.
 [plugins]
 
+    # ==== SH ==== #
+
+    # [plugins.sh]
+    # cmd = []
+
     # ==== PIP ==== #
 
     # [plugins.pip]
