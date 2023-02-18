@@ -43,13 +43,14 @@ ENV PATH="${PATH}:{{ paths | join(':') }}"
 ENV {{ env.name }}="{{ env.value }}"
 {%- endfor %}
 
-COPY --from=nixbuilder /output/store /nix/store
-COPY --from=nixbuilder /output/profile/ /usr/local/
-
-RUN addgroup --gid 1000 ${USER} \
+RUN rm -rf /usr/local \
+    && addgroup --gid 1000 ${USER} \
     && adduser --uid 1000 --ingroup ${USER} --home ${HOME} \
         --shell $(which ${SHELL} || which bash || which sh) \
         --disabled-password --gecos "" ${USER}
+
+COPY --from=nixbuilder /output/store /nix/store
+COPY --from=nixbuilder /output/profile/ /usr/local/
 
 COPY --from=prebuild --chown=root:root /fixuid /bin/fixuid
 RUN chmod 4755 /bin/fixuid \
