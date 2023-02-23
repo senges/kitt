@@ -187,7 +187,7 @@ class KittClient:
             labels = {'kitt-config': json.dumps(bind_config)}
 
             self.image_manager.build(
-                'kitt', template, name, labels=labels, pull=True)
+                'kitt', template, name, labels=labels, pull=False)
 
         success('Build success !')
 
