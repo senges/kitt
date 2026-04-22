@@ -26,6 +26,7 @@ $ podman $(podman run my-shell)
 
 This trick makes it super convenient and portable.
 To avoid running arbitraty scripts on the host, command must always be leaded by an explicit `podman` call. Way more safe.
+<!-- STILL VERY DANGEROUS -->
 
 ```
 # Bad bad bad

@@ -1,7 +1,0 @@
-docker
-dockerpty
-rich
-toml
-click
-fs
-jinja2

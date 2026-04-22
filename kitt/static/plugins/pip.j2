@@ -1,4 +1,0 @@
-{% if packages %}
-RUN su ${USER} -c 'pip install --user --upgrade{% for index in extra_indexes %} --extra-index-url "{{ index }}"{% endfor %} {% for package in packages %} {{ package }}{% endfor %}'
-{% endif %}
-
